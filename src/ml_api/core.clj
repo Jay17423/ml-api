@@ -17,27 +17,21 @@
 
 (defn execute
   "Handles dataset load request."
-
   [req]
-
-  (log/info
-   {:msg "Dataset load request"
-    :metric {:type (:type (:body req))}})
-
+  (log/info {:msg "Dataset load request"
+             :metric {:type (:type (:body req))}})
   (let [body (:body req)
         dataset (ds/read-dataset session body)
-        vectorized-dataset (vs/create-feature-vector dataset (:feature_field body))
+        vectorized-dataset (vs/create-feature-vector dataset (:feature-field body))
         duration (- (System/currentTimeMillis) (:start-time req))
         preview (util/dataset->preview vectorized-dataset)]
-
     (log/info
      {:msg "Dataset processed successfully"
       :metric {:duration-ms duration}})
-
     (status
      (response {:status "success"
                 :duration-ms duration
-                :data preview}) 
+                :data preview})
      200)))
 
 (defroutes app-routes

@@ -10,8 +10,8 @@
 /.lein-plugins
 /.eastwood
 /.clj-kondo/.cache
-.lsp/                 # language server cache (VERY IMPORTANT)
-.cursive/             # IntelliJ Cursive cache
+.lsp/    
+.cursive/          
 /.calva/
 
 # =========================

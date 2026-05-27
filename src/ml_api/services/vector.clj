@@ -14,11 +14,14 @@
     (let [assembler (-> (VectorAssembler.)
                         (.setInputCols (into-array String feature-cols))
                         (.setOutputCol "features"))]
-      (log/info {:msg "Feature vectors created successfully"})
+      (log/info
+       {:msg "Feature vectors created successfully"})
       (.transform assembler dataset))
     (catch Exception err
-      (throw (ex-info "Feature vector creation failed"
-                      {:type :vector/vector-creation-failed
-                       :feature-cols feature-cols
-                       :error (.getMessage err)}
-                      err)))))
+      (throw
+       (ex-info
+        "Feature vector creation failed"
+        {:type :vector/vector-creation-failed
+         :feature-cols feature-cols
+         :error (.getMessage err)}
+        err)))))
