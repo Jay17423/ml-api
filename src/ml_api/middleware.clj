@@ -1,44 +1,82 @@
 (ns ml-api.middleware
-  (:require [ring.util.response :refer [response status]]
-            [taoensso.timbre :as log]))
+  (:require
+   [ring.util.response :refer [response status]]
+   [taoensso.timbre :as log]))
+
+(defn error-response
+  [http-status message duration details]
+  (-> (response
+       {:status "error"
+        :message message
+        :details details
+        :duration-ms duration})
+      (status http-status)))
 
 (defn wrap-error-handler
-  "Centralized error handling middleware."
+  "Centralized exception handling middleware."
   [handler]
+
   (fn [req]
     (try
       (handler req)
       (catch AssertionError err
-        (let [duration (- (System/currentTimeMillis) (:start-time req))]
-          (log/warn {:msg "Invalid request body"
-                     :error (.getMessage err)
-                     :metric {:duration-ms duration}})
-          (status
-           (response
-            {:status      "error"
-             :msg         "Invalid request body"
-             :error       (.getMessage err)
-             :duration-ms duration})
-           400)))
+        (let [duration (- (System/currentTimeMillis)
+                          (:start-time req))]
+
+          (log/warn
+           {:msg "Validation failed"
+            :error (.getMessage err)
+            :metric {:duration-ms duration}})
+          (error-response
+           400
+           "Validation failed"
+           duration
+           (.getMessage err))))
+      (catch clojure.lang.ExceptionInfo err
+        (let [duration (- (System/currentTimeMillis) (:start-time req))
+              err-data (ex-data err)
+              error-type (:type err-data)
+              message
+              (case error-type
+
+                :dataset/read-failed
+                "Unable to read dataset"
+
+                :vector/vector-creation-failed
+                "Feature vector creation failed"
+
+                :spark/session-create-failed
+                "Spark session creation failed"
+
+                :spark/warmup-failed
+                "Spark warmup failed"
+
+                "Application error")]
+
+          (log/error
+           {:msg message
+            :type error-type
+            :details err-data
+            :error (.getMessage err)
+            :metric {:duration-ms duration}})
+
+          (error-response
+           500
+           message
+           duration
+           err-data)))
 
       (catch Exception err
-        (let [duration  (- (System/currentTimeMillis) (:start-time req))
-              err-data  (ex-data err)
-              auth-fail (= 401 (:status err-data))]
-          (log/error {:msg    "Dataset load failed"
-                      :error  (.getMessage err)
-                      :status (:status err-data)
-                      :source (:type err-data)
-                      :url    (:url err-data)
+        (let [duration (- (System/currentTimeMillis) (:start-time req))]
+          (log/error {:msg "Unhandled exception"
+                      :error (.getMessage err)
+                      :exception err
                       :metric {:duration-ms duration}})
-          (status
-           (response
-            {:status      "error"
-             :msg         (if auth-fail
-                            "Authentication failed - token expired"
-                            "Internal server error")
-             :duration-ms duration})
-           (if auth-fail 401 500)))))))
+          (error-response
+           500
+           "Internal server error"
+           duration
+           (.getMessage err)))))))
 
 (defn wrap-request-timer
   "Attaches start-time to request for duration tracking."

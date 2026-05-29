@@ -2,45 +2,41 @@
   (:require
    [taoensso.timbre :as log])
   (:import
-   [org.apache.spark.sql.types StructField
-    StructType
-    Metadata
-    DataTypes]))
+   [org.apache.spark.sql.types StructField StructType Metadata DataTypes]))
 
 
 (defn create-schema
-  "Creates dynamic schema using feature fields."
-  [feature-cols]
-  (StructType. (into-array StructField (map (fn [col-name]
-                                              (StructField.
-                                               col-name
-                                               DataTypes/DoubleType
-                                               true
-                                               (Metadata/empty)))
-                                            feature-cols))))
+  [all-cols]
+  (StructType. (into-array StructField
+                           (map (fn [col-name]
+                                  (StructField.
+                                   col-name
+                                   DataTypes/DoubleType
+                                   true
+                                   (Metadata/empty)))
+                                all-cols))))
 
 (defn read-dataset
-  [spark {:keys [url options feature-field]}]
+  [spark {:keys [url options feature_field label_field]}]
 
   (let [opts (merge {:header true :delimiter ","} options)
-        schema (create-schema feature-field)]
+        all-cols (conj (vec feature_field) label_field)
+        schema (create-schema all-cols)]
     (try
-      (log/info
-       {:msg "Reading dataset"
-        :metric {:path url}})
-
+      (log/info {:msg "Reading dataset"
+                 :url url
+                 :columns all-cols})
       (-> spark
           .read
           (.format "csv")
           (.schema schema)
-          (.option "header"
-                   (if (:header opts) "true" "false"))
-          (.option "delimiter"
-                   (:delimiter opts))
+          (.option "header" (if (:header opts) "true" "false"))
+          (.option "delimiter" (or (:delimiter opts) ","))
           (.load url))
-
       (catch Exception err
-        (throw (ex-info "Failed to read dataset"
-                        {:path url
+        (throw (ex-info "Dataset read failed"
+                        {:type :dataset/read-failed
+                         :url url
+                         :columns all-cols
                          :error (.getMessage err)}
                         err))))))
