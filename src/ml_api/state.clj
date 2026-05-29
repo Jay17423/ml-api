@@ -14,18 +14,6 @@
     (-> (fs/session-builder)
         (fs/master (cfg/get :spark :app :master-url))
         (fs/app-name (cfg/get :spark :app :name)) 
-        (fs/config
-         "spark.executor.extraClassPath"
-         (str (System/getProperty "user.dir")
-              "/target/connector-0.1.0-SNAPSHOT-standalone.jar"))
-        (fs/config
-         "spark.driver.extraClassPath"
-         (str (System/getProperty "user.dir")
-              "/target/connector-0.1.0-SNAPSHOT-standalone.jar"))
-        (fs/config
-         "spark.jars"
-         (str (System/getProperty "user.dir")
-              "/target/connector-0.1.0-SNAPSHOT-standalone.jar")) 
         (fs/get-or-create))
     (catch Exception err
       (throw (ex-info "Unable to create Spark session"

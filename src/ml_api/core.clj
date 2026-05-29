@@ -12,6 +12,8 @@
    [ml-api.state :refer [session]]
    [ml-api.services.dataset :as ds]
    [ml-api.algorithms.chi-square-test :as chi]
+   [ml-api.algorithms.count-vectorizer :as cv]
+   [ml-api.algorithms.tokenizer :as tokenizer]
    [taoensso.timbre :as log]
    [omniconf.core :as cfg]
    [ml-api.specs :as specs]))
@@ -23,6 +25,19 @@
   (case algorithm
     "ChiSquareTest"
     (chi/execute dataset parameters)
+
+    "CountVectorizer"
+    (cv/execute dataset parameters)
+
+    "Tokenizer"
+    (tokenizer/execute-tokenizer
+     dataset
+     parameters)
+    
+    "RegexTokenizer"
+    (tokenizer/execute-regex-tokenizer
+     dataset
+     parameters)
 
     (throw (ex-info "Unsupported algorithm"
                     {:type :algorithm/not-supported
@@ -46,7 +61,8 @@
     (-> (response
          {:status "success"
           :duration-ms duration
-          :data result})
+          :result (:data result)
+          :parameters parameters })
         (status 200))))
 
 (defroutes app-routes

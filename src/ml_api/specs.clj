@@ -26,7 +26,86 @@
 
     :optional {:flatten
                {:validator boolean?
-                :type "boolean"}}}})
+                :type "boolean"}}}
+
+   "CountVectorizer"
+   {:required
+
+    {:url
+     {:validator string?
+      :type "string"}
+
+     :input_field
+     {:validator string?
+      :type "string"}
+
+     :output_field
+     {:validator string?
+      :type "string"}}
+
+    :optional
+
+    {:word_limit
+     {:validator integer?
+      :type "integer"}
+
+     :min_docs
+     {:validator integer?
+      :type "integer"}
+
+     :min_count
+     {:validator float?
+      :type "float"}}}
+
+   "Tokenizer"
+   {:required
+
+    {:url
+     {:validator string?
+      :type "string"}
+
+     :input_field
+     {:validator string?
+      :type "string"}
+
+     :output_field
+     {:validator string?
+      :type "string"}}
+
+    :optional {}}
+
+   "RegexTokenizer"
+   {:required
+
+    {:url
+     {:validator string?
+      :type "string"}
+
+     :input_field
+     {:validator string?
+      :type "string"}
+
+     :output_field
+     {:validator string?
+      :type "string"}}
+
+    :optional
+
+    {:pattern
+     {:validator string?
+      :type "string"}
+
+     :pattern_as_delimiter
+     {:validator boolean?
+      :type "boolean"}
+
+     :minimum_token_length
+     {:validator integer?
+      :type "integer"}
+
+     :convert_to_lowercase
+     {:validator boolean?
+      :type "boolean"}}}})
 
 (defn validate-parameter-type
   [param-name validator expected-type value]
@@ -59,7 +138,6 @@
   [optional-spec parameters]
 
   (doseq [[param-name {:keys [validator type]}] optional-spec]
-
     (when (contains? parameters param-name)
       (validate-parameter-type
        param-name

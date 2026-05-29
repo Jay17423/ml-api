@@ -1,8 +1,7 @@
 (ns ml-api.algorithms.chi-square-test
   (:require
    [taoensso.timbre :as log]
-   [ml-api.services.vector :as vs])
-
+   [ml-api.algorithms.vector-assembler :as va])
   (:import
    [org.apache.spark.ml.stat ChiSquareTest]
    [org.apache.spark.ml.linalg Vector]
@@ -38,15 +37,7 @@
   [dataset
    {:keys [label_field feature_field flatten] :or {flatten true}}]
   (try
-    (when-not label_field
-      (throw (ex-info "label_field is required"
-                      {:type :validation/missing-label-field})))
-
-    (when (empty? feature_field)
-      (throw (ex-info "feature_field is required"
-                      {:type :validation/missing-feature-field})))
-
-    (let [vectorized-dataset (vs/create-feature-vector dataset feature_field)
+    (let [vectorized-dataset (va/create-feature-vector dataset feature_field)
           result-df (ChiSquareTest/test vectorized-dataset "features" label_field)
           result-row (.head result-df)]
 
@@ -54,8 +45,7 @@
                  :label-field label_field
                  :flatten flatten})
 
-      {:algorithm "ChiSquareTest"
-       :result (parse-result result-row flatten)})
+      {:data (parse-result result-row flatten)})
     (catch Exception err
       (throw (ex-info "ChiSquareTest execution failed"
                       {:type :algorithm/chi-square-test-failed
