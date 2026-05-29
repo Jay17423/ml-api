@@ -2,139 +2,94 @@
   (:require
    [clojure.spec.alpha :as s]))
 
-;; ------------------------------------------------------------
-;; Primitive Specs
-;; ------------------------------------------------------------
-
 (s/def ::string string?)
-
 (s/def ::boolean boolean?)
-
 (s/def ::string-vector
   (s/coll-of string?
              :kind vector?
              :min-count 1))
 
-;; ------------------------------------------------------------
-;; Algorithm Parameter Definitions
-;; ------------------------------------------------------------
-
 (def algorithm-params
-
   {"ChiSquareTest"
-
    {:required
-    {:url string?
-     :feature_field vector?
-     :label_field string?}
+    {:url {:validator string?
+           :type "string"}
 
-    :optional
-    {:flatten boolean?}}})
+     :feature_field {:validator
+                     #(and
+                       (vector? %)
+                       (every? string? %))
+                     :type "vector<string>"}
 
-;; ------------------------------------------------------------
-;; Generic Validation
-;; ------------------------------------------------------------
+     :label_field {:validator string?
+                   :type "string"}}
+
+    :optional {:flatten
+               {:validator boolean?
+                :type "boolean"}}}})
 
 (defn validate-parameter-type
-  [param-name expected-type value]
+  [param-name validator expected-type value]
 
-  (when-not (expected-type value)
-
+  (when-not (validator value)
     (throw
      (ex-info
       "Invalid parameter datatype"
-
       {:type :validation/invalid-parameter-type
        :parameter param-name
-       :expected (str expected-type)
-       :received (type value)}))))
+       :expected expected-type
+       :received (str (type value))}))))
 
 (defn validate-required-parameters
   [required-spec parameters]
-
-  (doseq [[param-name validator] required-spec]
+  (doseq [[param-name {:keys [validator type]}]
+          required-spec]
 
     (when-not (contains? parameters param-name)
-
-      (throw
-       (ex-info
-        "Missing required parameter"
-
-        {:type :validation/missing-parameter
-         :parameter param-name})))
+      (throw (ex-info "Missing required parameter"
+                      {:type :validation/missing-parameter
+                       :parameter param-name})))
 
     (validate-parameter-type
-     param-name
-     validator
+     param-name validator
+     type
      (get parameters param-name))))
 
 (defn validate-optional-parameters
   [optional-spec parameters]
 
-  (doseq [[param-name validator] optional-spec]
+  (doseq [[param-name {:keys [validator type]}] optional-spec]
 
     (when (contains? parameters param-name)
-
       (validate-parameter-type
        param-name
        validator
+       type
        (get parameters param-name)))))
 
 (defn validate-request
   [body]
-
-  ;; ----------------------------------------------------------
-  ;; Top Level Validation
-  ;; ----------------------------------------------------------
-
   (when-not (string? (:algorithm body))
-
-    (throw
-     (ex-info
-      "algorithm must be string"
-
-      {:type :validation/invalid-algorithm})))
+    (throw (ex-info "algorithm must be string"
+                    {:type :validation/invalid-algorithm})))
 
   (when-not (map? (:parameters body))
+    (throw (ex-info "parameters must be object"
+                    {:type :validation/invalid-parameters})))
 
-    (throw
-     (ex-info
-      "parameters must be object"
+  (let [algorithm
+        (:algorithm body)
 
-      {:type :validation/invalid-parameters})))
-
-  ;; ----------------------------------------------------------
-  ;; Algorithm Validation
-  ;; ----------------------------------------------------------
-
-  (let [algorithm (:algorithm body)
-
-        parameters (:parameters body)
+        parameters
+        (:parameters body)
 
         algorithm-spec
         (get algorithm-params algorithm)]
 
     (when-not algorithm-spec
 
-      (throw
-       (ex-info
-        "Unsupported algorithm"
-
-        {:type :validation/unsupported-algorithm
-         :algorithm algorithm})))
-
-    ;; --------------------------------------------------------
-    ;; Required Params
-    ;; --------------------------------------------------------
-
-    (validate-required-parameters
-     (:required algorithm-spec)
-     parameters)
-
-    ;; --------------------------------------------------------
-    ;; Optional Params
-    ;; --------------------------------------------------------
-
-    (validate-optional-parameters
-     (:optional algorithm-spec)
-     parameters)))
+      (throw (ex-info "Unsupported algorithm"
+                      {:type :validation/unsupported-algorithm
+                       :algorithm algorithm})))
+    (validate-required-parameters (:required algorithm-spec) parameters)
+    (validate-optional-parameters (:optional algorithm-spec) parameters)))
