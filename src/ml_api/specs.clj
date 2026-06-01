@@ -11,101 +11,157 @@
 
 (def algorithm-params
   {"ChiSquareTest"
-   {:required
-    {:url {:validator string?
-           :type "string"}
+   {:required {:url {:validator string?
+                     :type "string"}
 
-     :feature_field {:validator
-                     #(and
-                       (vector? %)
-                       (every? string? %))
-                     :type "vector<string>"}
+               :feature_field {:validator #(and (vector? %) (every? string? %))
+                               :type "vector<string>"}
 
-     :label_field {:validator string?
-                   :type "string"}}
+               :label_field {:validator string?
+                             :type "string"}}
 
     :optional {:flatten
                {:validator boolean?
                 :type "boolean"}}}
 
    "CountVectorizer"
-   {:required
+   {:required {:url
+               {:validator string?
+                :type "string"}
 
-    {:url
-     {:validator string?
-      :type "string"}
+               :input_field
+               {:validator string?
+                :type "string"}
 
-     :input_field
-     {:validator string?
-      :type "string"}
+               :output_field
+               {:validator string?
+                :type "string"}}
 
-     :output_field
-     {:validator string?
-      :type "string"}}
+    :optional {:word_limit
+               {:validator integer?
+                :type "integer"}
 
-    :optional
+               :min_docs
+               {:validator integer?
+                :type "integer"}
 
-    {:word_limit
-     {:validator integer?
-      :type "integer"}
-
-     :min_docs
-     {:validator integer?
-      :type "integer"}
-
-     :min_count
-     {:validator float?
-      :type "float"}}}
+               :min_count
+               {:validator float?
+                :type "float"}}}
 
    "Tokenizer"
-   {:required
+   {:required {:url
+               {:validator string?
+                :type "string"}
 
-    {:url
-     {:validator string?
-      :type "string"}
+               :input_field
+               {:validator string?
+                :type "string"}
 
-     :input_field
-     {:validator string?
-      :type "string"}
-
-     :output_field
-     {:validator string?
-      :type "string"}}
+               :output_field
+               {:validator string?
+                :type "string"}}
 
     :optional {}}
 
    "RegexTokenizer"
+   {:required {:url
+               {:validator string?
+                :type "string"}
+
+               :input_field
+               {:validator string?
+                :type "string"}
+
+               :output_field
+               {:validator string?
+                :type "string"}}
+
+    :optional {:pattern
+               {:validator string?
+                :type "string"}
+
+               :pattern_as_delimiter
+               {:validator boolean?
+                :type "boolean"}
+
+               :minimum_token_length
+               {:validator integer?
+                :type "integer"}
+
+               :convert_to_lowercase
+               {:validator boolean?
+                :type "boolean"}}}
+
+   "StopWordsRemover"
+   {:required {:url
+               {:validator string?
+                :type "string"}
+
+               :input_field
+               {:validator string?
+                :type "string"}
+
+               :output_field
+               {:validator string?
+                :type "string"}}
+
+    :optional {:stop_words
+               {:validator #(and (vector? %) (every? string? %))
+                :type "vector<string>"}
+               :case_sensitive
+               {:validator boolean?
+                :type "boolean"}}}
+
+   "NGram"
+   {:required {:url
+               {:validator string?
+                :type "string"}
+
+               :input_field
+               {:validator string?
+                :type "string"}
+
+               :output_field
+               {:validator string?
+                :type "string"}}
+
+    :optional {:ngram_size
+               {:validator integer?
+                :type "integer"}}}
+   "StringIndexer"
+
    {:required
 
     {:url
      {:validator string?
       :type "string"}
 
-     :input_field
-     {:validator string?
-      :type "string"}
+     :input_fields
+     {:validator
+      #(and
+        (vector? %)
+        (every? string? %))
 
-     :output_field
-     {:validator string?
-      :type "string"}}
+      :type "vector<string>"}
+
+     :output_fields
+     {:validator
+      #(and
+        (vector? %)
+        (every? string? %))
+
+      :type "vector<string>"}}
 
     :optional
 
-    {:pattern
+    {:invalid_value
      {:validator string?
       :type "string"}
 
-     :pattern_as_delimiter
-     {:validator boolean?
-      :type "boolean"}
-
-     :minimum_token_length
-     {:validator integer?
-      :type "integer"}
-
-     :convert_to_lowercase
-     {:validator boolean?
-      :type "boolean"}}}})
+     :label_order
+     {:validator string?
+      :type "string"}}}})
 
 (defn validate-parameter-type
   [param-name validator expected-type value]

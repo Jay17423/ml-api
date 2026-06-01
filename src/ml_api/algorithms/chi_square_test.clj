@@ -38,7 +38,10 @@
    {:keys [label_field feature_field flatten] :or {flatten true}}]
   (try
     (let [vectorized-dataset (va/create-feature-vector dataset feature_field)
-          result-df (ChiSquareTest/test vectorized-dataset "features" label_field)
+          result-df (ChiSquareTest/test
+                     vectorized-dataset
+                     "features"
+                     label_field)
           result-row (.head result-df)]
 
       (log/info {:msg "ChiSquareTest completed successfully"

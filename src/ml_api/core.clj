@@ -14,9 +14,15 @@
    [ml-api.algorithms.chi-square-test :as chi]
    [ml-api.algorithms.count-vectorizer :as cv]
    [ml-api.algorithms.tokenizer :as tokenizer]
+   [ml-api.algorithms.stop-words-remover :as swr]
+   [ml-api.algorithms.ngram :as ngram]
+   [ml-api.algorithms.string-indexer :as si]
    [taoensso.timbre :as log]
    [omniconf.core :as cfg]
    [ml-api.specs :as specs]))
+
+"TODO : change all underscore params name to kebab case after completing the 
+ project"
 
 (defn execute-algorithm
   "Dispatches ML algorithm execution."
@@ -38,6 +44,15 @@
     (tokenizer/execute-regex-tokenizer
      dataset
      parameters)
+    
+    "StopWordsRemover"
+    (swr/execute dataset parameters)
+
+    "NGram"
+    (ngram/execute dataset parameters)
+
+    "StringIndexer"
+    (si/execute dataset parameters)
 
     (throw (ex-info "Unsupported algorithm"
                     {:type :algorithm/not-supported

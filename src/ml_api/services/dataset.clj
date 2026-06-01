@@ -9,7 +9,6 @@
                      :delimiter ","
                      :infer-schema true}
                     options)]
-
     (try
       (log/info {:msg "Reading dataset"
                  :url url
