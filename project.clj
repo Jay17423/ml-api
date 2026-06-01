@@ -22,6 +22,7 @@
                  [ring/ring-defaults "0.3.2"]
                  [ring/ring-json "0.5.1"]
                  [ring/ring-jetty-adapter "1.9.6"]
+                 [ring/ring-devel "1.9.6"]
                  [cheshire "5.11.0"]
                  [com.taoensso/timbre "6.8.0"]
                  [yieldbot/serializable-fn "0.1.3"]

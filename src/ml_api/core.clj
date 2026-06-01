@@ -7,6 +7,7 @@
    [ring.util.response :refer [response status]]
    [ring.adapter.jetty :as jetty]
    [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
+   [ring.middleware.reload :refer [wrap-reload]]
    [ml-api.logger :as logger]
    [ml-api.middleware :as mw]
    [ml-api.state :refer [session]]
@@ -16,20 +17,24 @@
    [ml-api.algorithms.tokenizer :as tokenizer]
    [ml-api.algorithms.stop-words-remover :as swr]
    [ml-api.algorithms.ngram :as ngram]
-   [ml-api.algorithms.string-indexer :as si]
+   [ml-api.algorithms.string-indexer :as si] 
+   [ml-api.algorithms.binarizer :as bin]
    [taoensso.timbre :as log]
    [omniconf.core :as cfg]
    [ml-api.specs :as specs]))
 
-"TODO : change all underscore params name to kebab case after completing the 
- project"
+"TODO : 1. change all underscore params name to kebab case after completing the 
+ project
+ 2. Cast into to double for csv file and I will do it in  preprocessing.clj file
+  later
+ 3. Verify the docstring in all the namespaces and funtion.  "
 
 (defn execute-algorithm
   "Dispatches ML algorithm execution."
   [algorithm dataset parameters]
-
+ 
   (case algorithm
-    "ChiSquareTest"
+    "ChiSquareTest" 
     (chi/execute dataset parameters)
 
     "CountVectorizer"
@@ -39,12 +44,12 @@
     (tokenizer/execute-tokenizer
      dataset
      parameters)
-    
+
     "RegexTokenizer"
     (tokenizer/execute-regex-tokenizer
      dataset
      parameters)
-    
+
     "StopWordsRemover"
     (swr/execute dataset parameters)
 
@@ -53,6 +58,9 @@
 
     "StringIndexer"
     (si/execute dataset parameters)
+
+    "Binarizer"
+    (bin/execute dataset parameters)
 
     (throw (ex-info "Unsupported algorithm"
                     {:type :algorithm/not-supported
@@ -91,7 +99,8 @@
       (mw/wrap-error-handler)
       (mw/wrap-request-timer)
       (wrap-json-body {:keywords? true})
-      wrap-json-response))
+      wrap-json-response
+      wrap-reload))
 
 (defn -main
   []

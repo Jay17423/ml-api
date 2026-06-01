@@ -20,160 +20,130 @@
                :label_field {:validator string?
                              :type "string"}}
 
-    :optional {:flatten
-               {:validator boolean?
-                :type "boolean"}}}
+    :optional {:flatten {:validator boolean?
+                         :type "boolean"}}}
 
    "CountVectorizer"
-   {:required {:url
-               {:validator string?
-                :type "string"}
+   {:required {:url {:validator string?
+                     :type "string"}
 
-               :input_field
-               {:validator string?
-                :type "string"}
+               :input_field {:validator string?
+                             :type "string"}
 
-               :output_field
-               {:validator string?
-                :type "string"}}
+               :output_field {:validator string?
+                              :type "string"}}
 
-    :optional {:word_limit
-               {:validator integer?
-                :type "integer"}
+    :optional {:word_limit {:validator integer?
+                            :type "integer"}
 
-               :min_docs
-               {:validator integer?
-                :type "integer"}
+               :min_docs {:validator integer?
+                          :type "integer"}
 
-               :min_count
-               {:validator float?
-                :type "float"}}}
+               :min_count {:validator float?
+                           :type "float"}}}
 
    "Tokenizer"
-   {:required {:url
-               {:validator string?
-                :type "string"}
+   {:required {:url {:validator string?
+                     :type "string"}
 
-               :input_field
-               {:validator string?
-                :type "string"}
+               :input_field {:validator string?
+                             :type "string"}
 
-               :output_field
-               {:validator string?
-                :type "string"}}
+               :output_field {:validator string?
+                              :type "string"}}
 
     :optional {}}
 
    "RegexTokenizer"
-   {:required {:url
-               {:validator string?
-                :type "string"}
+   {:required {:url {:validator string?
+                     :type "string"}
 
-               :input_field
-               {:validator string?
-                :type "string"}
+               :input_field {:validator string?
+                             :type "string"}
 
-               :output_field
-               {:validator string?
-                :type "string"}}
+               :output_field {:validator string?
+                              :type "string"}}
 
-    :optional {:pattern
-               {:validator string?
-                :type "string"}
+    :optional {:pattern {:validator string?
+                         :type "string"}
 
-               :pattern_as_delimiter
-               {:validator boolean?
-                :type "boolean"}
+               :pattern_as_delimiter {:validator boolean?
+                                      :type "boolean"}
 
-               :minimum_token_length
-               {:validator integer?
-                :type "integer"}
+               :minimum_token_length {:validator integer?
+                                      :type "integer"}
 
-               :convert_to_lowercase
-               {:validator boolean?
-                :type "boolean"}}}
+               :convert_to_lowercase {:validator boolean?
+                                      :type "boolean"}}}
 
    "StopWordsRemover"
-   {:required {:url
-               {:validator string?
-                :type "string"}
+   {:required {:url {:validator string?
+                     :type "string"}
 
-               :input_field
-               {:validator string?
-                :type "string"}
+               :input_field {:validator string?
+                             :type "string"}
 
-               :output_field
-               {:validator string?
-                :type "string"}}
+               :output_field {:validator string?
+                              :type "string"}}
 
-    :optional {:stop_words
-               {:validator #(and (vector? %) (every? string? %))
-                :type "vector<string>"}
-               :case_sensitive
-               {:validator boolean?
-                :type "boolean"}}}
+    :optional {:stop_words {:validator #(and (vector? %) (every? string? %))
+                            :type "vector<string>"}
+               :case_sensitive {:validator boolean?
+                                :type "boolean"}}}
 
    "NGram"
-   {:required {:url
-               {:validator string?
-                :type "string"}
+   {:required {:url {:validator string?
+                     :type "string"}
 
-               :input_field
-               {:validator string?
-                :type "string"}
+               :input_field {:validator string?
+                             :type "string"}
 
-               :output_field
-               {:validator string?
-                :type "string"}}
+               :output_field {:validator string?
+                              :type "string"}}
 
-    :optional {:ngram_size
-               {:validator integer?
-                :type "integer"}}}
+    :optional {:ngram_size {:validator integer?
+                            :type "integer"}}}
    "StringIndexer"
+   {:required {:url {:validator string?
+                     :type "string"}
 
-   {:required
+               :input_fields {:validator #(and (vector? %) (every? string? %))
+                              :type "vector<string>"}
 
-    {:url
-     {:validator string?
-      :type "string"}
+               :output_fields {:validator
+                               #(and (vector? %) (every? string? %))
+                               :type "vector<string>"}}
 
-     :input_fields
-     {:validator
-      #(and
-        (vector? %)
-        (every? string? %))
+    :optional {:invalid_value {:validator string?
+                               :type "string"}
 
-      :type "vector<string>"}
+               :label_order {:validator string?
+                             :type "string"}}}
 
-     :output_fields
-     {:validator
-      #(and
-        (vector? %)
-        (every? string? %))
+   "Binarizer"
+   {:required {:url {:validator string?
+                     :type "string"}
 
-      :type "vector<string>"}}
+               :input_field {:validator #(and (vector? %) (every? string? %))
+                             :type "vector<string>"}
 
-    :optional
+               :output_field {:validator #(and (vector? %) (every? string? %))
+                              :type "vector<string>"}}
 
-    {:invalid_value
-     {:validator string?
-      :type "string"}
-
-     :label_order
-     {:validator string?
-      :type "string"}}}})
+    :optional {:threshold_values {:validator #(and
+                                               (vector? %)
+                                               (every? number? %))
+                                  :type "vector<float>"}}}})
 
 (defn validate-parameter-type
   [param-name validator expected-type value]
 
   (when-not (validator value)
-    (throw
-     (ex-info
-      "Invalid parameter datatype"
-      {:type :validation/invalid-parameter-type
-       :parameter param-name
-       :expected expected-type
-       :received (str (type value))}))))
+    (throw (ex-info "Invalid parameter datatype"
+                    {:type :validation/invalid-parameter-type
+                     :parameter param-name
+                     :expected expected-type
+                     :received (str (type value))}))))
 
 (defn validate-required-parameters
   [required-spec parameters]
@@ -211,17 +181,11 @@
     (throw (ex-info "parameters must be object"
                     {:type :validation/invalid-parameters})))
 
-  (let [algorithm
-        (:algorithm body)
-
-        parameters
-        (:parameters body)
-
-        algorithm-spec
-        (get algorithm-params algorithm)]
+  (let [algorithm (:algorithm body)
+        parameters (:parameters body)
+        algorithm-spec (get algorithm-params algorithm)]
 
     (when-not algorithm-spec
-
       (throw (ex-info "Unsupported algorithm"
                       {:type :validation/unsupported-algorithm
                        :algorithm algorithm})))
