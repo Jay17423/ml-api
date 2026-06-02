@@ -1,4 +1,5 @@
 (ns ml-api.algorithms.stop-words-remover
+  "Spark StopWordsRemover implementation."
   (:require
    [taoensso.timbre :as log]
    [ml-api.algorithms.tokenizer :as tokenizer])
@@ -6,49 +7,54 @@
    [org.apache.spark.ml.feature StopWordsRemover]
    [scala.collection.mutable WrappedArray]))
 
-
 (defn wrapped-array->clojure
+  "Converts WrappedArray into Clojure vector."
   [wrapped-array]
   (vec (.array ^WrappedArray wrapped-array)))
 
 (defn row->clojure
+  "Converts Spark row into Clojure map."
   [row output-field]
   {:filtered_words (wrapped-array->clojure (.getAs row output-field))})
 
 (defn dataset->json
+  "Converts dataset into JSON preview."
   [dataset output-field]
   (mapv #(row->clojure % output-field) (.collectAsList dataset)))
 
+(defn transform
+  "Removes stop words from tokens."
+  [dataset input-field output-field stop-words case-sensitive]
+  (let [token-column "tokens"
+        tokenized-dataset (tokenizer/transform dataset input-field token-column)
+        remover (cond->
+                 (-> (StopWordsRemover.)
+                     (.setInputCol token-column)
+                     (.setOutputCol output-field)
+                     (.setCaseSensitive case-sensitive))
+                  stop-words (.setStopWords (into-array String stop-words)))]
+    (.transform remover tokenized-dataset)))
+
 (defn execute
   "Executes Spark StopWordsRemover."
-  [dataset
-   {:keys [input_field
-           output_field
-           stop_words
-           case_sensitive]
-
-    :or {output_field "filtered_words"
-         case_sensitive false}}]
+  [dataset {:keys [input_field
+                   output_field
+                   stop_words
+                   case_sensitive]
+            :or {output_field "filtered_words"
+                 case_sensitive false}}]
 
   (try
     (log/info {:msg "Starting StopWordsRemover"
                :input-field input_field
                :output-field output_field})
 
-    (let [token-column "tokens"
-          tokenized-dataset (tokenizer/transform
-                             dataset
-                             input_field
-                             token-column)
-          remover (cond->
-                   (-> (StopWordsRemover.)
-                       (.setInputCol token-column)
-                       (.setOutputCol output_field)
-                       (.setCaseSensitive case_sensitive))
-                    stop_words
-                    (.setStopWords
-                     (into-array String stop_words)))
-          transformed-dataset (.transform remover tokenized-dataset)
+    (let [transformed-dataset (transform
+                               dataset
+                               input_field
+                               output_field
+                               stop_words
+                               case_sensitive)
           preview (dataset->json transformed-dataset output_field)]
 
       (log/info {:msg "StopWordsRemover completed successfully"})

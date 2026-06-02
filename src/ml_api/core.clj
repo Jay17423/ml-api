@@ -24,6 +24,9 @@
    [ml-api.algorithms.bucketizer :as bucket]
    [ml-api.algorithms.imputer :as imp]
    [ml-api.algorithms.chi-sq-selector :as css]
+   [ml-api.algorithms.bucketed-random-projection-lsh :as brp]
+   [ml-api.algorithms.generalized-linear-regression :as glr]
+   [ml-api.algorithms.lda :as lda]
    [taoensso.timbre :as log]
    [omniconf.core :as cfg]
    [ml-api.specs :as specs]))
@@ -32,7 +35,8 @@
  project
  2. Cast into to double for csv file and I will do it in  preprocessing.clj file
   later
- 3. Verify the docstring in all the namespaces and funtion.  "
+ 3. Verify the docstring in all the namespaces and funtion.
+ 4. Add termIndices in the LDA algorithm"
 
 (defn execute-algorithm
   "Dispatches ML algorithm execution."
@@ -82,6 +86,15 @@
     "ChiSqSelector"
     (css/execute dataset parameters)
 
+    "BucketedRandomProjectionLSH"
+    (brp/execute dataset parameters)
+
+    "GeneralizedLinearRegression"
+    (glr/execute dataset parameters)
+
+    "LDA"
+    (lda/execute dataset parameters)
+
     (throw (ex-info "Unsupported algorithm"
                     {:type :algorithm/not-supported
                      :algorithm algorithm}))))
@@ -104,7 +117,7 @@
     (-> (response
          {:status "success"
           :duration-ms duration
-          :result (:data result)
+          :result result
           :parameters parameters})
         (status 200))))
 

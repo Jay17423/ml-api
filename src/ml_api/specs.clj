@@ -211,34 +211,155 @@
                :output_field {:validator string?
                               :type "string"}}
 
-    :optional
-    {:target_field {:validator string?
-                    :type "string"}
+    :optional {:target_field {:validator string?
+                              :type "string"}
 
-     :selection_method {:validator
-                        #(contains? #{"numTopFeatures"
-                                      "percentile"
-                                      "fpr"
-                                      "fdr"
-                                      "fwe"}
-                                    %)
+               :selection_method
+               {:validator
+                #(contains? #{"numTopFeatures"
+                              "percentile"
+                              "fpr"
+                              "fdr"
+                              "fwe"}
+                            %)
+                :type "numTopFeatures | percentile | fpr | fdr | fwe"}
 
-                        :type "numTopFeatures | percentile | fpr | fdr | fwe"}
+               :top_feature {:validator int?
+                             :type "integer"}
 
-     :top_feature {:validator int?
-                   :type "integer"}
+               :selection_percentage {:validator number?
+                                      :type "float"}
 
-     :selection_percentage {:validator number?
-                            :type "float"}
+               :fpr_threshold {:validator number?
+                               :type "float"}
 
-     :fpr_threshold {:validator number?
-                     :type "float"}
+               :fdr_threshold {:validator number?
+                               :type "float"}
 
-     :fdr_threshold {:validator number?
-                     :type "float"}
+               :fwe_threshold {:validator number?
+                               :type "float"}}}
 
-     :fwe_threshold {:validator number?
-                     :type "float"}}}})
+   "BucketedRandomProjectionLSH"
+   {:required {:url {:validator string?
+                     :type "string"}
+
+               :feature_field {:validator
+                               #(and (vector? %) (every? string? %))
+                               :type "vector<string>"}
+
+               :output_field {:validator string?
+                              :type "string"}
+
+               :bucket_length {:validator number?
+                               :type "float"}}
+
+    :optional {:num_hash_tables {:validator int?
+                                 :type "integer"}
+
+               :random_seed {:validator int?
+                             :type "integer"}}}
+
+   "GeneralizedLinearRegression"
+   {:required {:url {:validator string?
+                     :type "string"}
+
+               :feature_field {:validator
+                               #(and (vector? %) (every? string? %))
+                               :type "vector<string>"}
+
+               :target_field {:validator string?
+                              :type "string"}}
+
+    :optional {:output_field {:validator string?
+                              :type "string"}
+
+               :model_path {:validator string?
+                            :type "string"}
+
+               :regression_family
+               {:validator
+                #(contains? #{"gaussian" "binomial" "poisson" "gamma" "tweedie"}
+                            (.toLowerCase %))
+                :type "gaussian | binomial | poisson | gamma | tweedie"}
+
+               :prediction_link {:validator string?
+                                 :type "string"}
+
+               :include_intercept {:validator boolean?
+                                   :type "boolean"}
+
+               :max_iterations {:validator int?
+                                :type "integer"}
+
+               :training_tolerance {:validator number?
+                                    :type "float"}
+
+               :regularization_strength {:validator number?
+                                         :type "float"}
+
+               :row_weight_field {:validator string?
+                                  :type "string"}
+
+               :training_solver {:validator string?
+                                 :type "string"}
+
+               :link_output_field {:validator string?
+                                   :type "string"}
+
+               :offset_field {:validator string?
+                              :type "string"}
+
+               :aggregation_depth {:validator int?
+                                   :type "integer"}}}
+   "LDA"
+   {:required {:url {:validator string?
+                     :type "string"}
+
+               :text_field {:validator string?
+                            :type "string"}}
+
+    :optional {:topic_count {:validator #(and (int? %) (>= % 1))
+                             :type "integer >= 1"}
+
+               :max_iterations {:validator #(and (int? %) (>= % 1))
+                                :type "integer >= 1"}
+
+               :random_seed {:validator #(and (int? %) (>= % 1))
+                             :type "integer >= 1"}
+
+               :training_method {:validator
+                                 #(contains? #{"online" "em"} (.toLowerCase %))
+                                 :type "online | em"}
+
+               :checkpoint_interval {:validator #(and (int? %) (>= % 1))
+                                     :type "integer >= 1"}
+
+               :initial_learning_offset {:validator #(and (number? %) (> % 0))
+                                         :type "float > 0"}
+
+               :learning_decay_rate {:validator
+                                     #(and (number? %) (> % 0.5) (<= % 1.0))
+                                     :type "float (0.5,1.0]"}
+
+               :training_sample_rate {:validator
+                                      #(and (number? %) (>= % 0.0) (<= % 1.0))
+                                      :type "float [0,1]"}
+
+               :auto_optimize {:validator boolean?
+                               :type "boolean"}
+
+               :document_concentration {:validator
+                                        #(and (vector? %) (every? number? %))
+                                        :type "vector<float>"}
+
+               :topic_concentration {:validator #(and (number? %) (> % 0))
+                                     :type "float > 0"}
+
+               :topic_distribution_field {:validator string?
+                                          :type "string"}
+
+               :keep_last_checkpoint {:validator boolean?
+                                      :type "boolean"}}}})
 
 (defn validate-parameter-type
   [param-name validator expected-type value]

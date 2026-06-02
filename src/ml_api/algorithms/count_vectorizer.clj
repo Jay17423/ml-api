@@ -1,4 +1,5 @@
 (ns ml-api.algorithms.count-vectorizer
+  "Spark CountVectorizer implementation."
   (:require
    [taoensso.timbre :as log]
    [ml-api.algorithms.tokenizer :as tokenizer])
@@ -7,25 +8,53 @@
    [scala.collection.mutable WrappedArray]))
 
 (defn wrapped-array->clojure
+  "Converts WrappedArray into Clojure vector."
   [wrapped-array]
   (vec (.array ^WrappedArray wrapped-array)))
 
 (defn row->clojure
+  "Converts Spark row into Clojure map."
   [row input-field output-field]
+
   {:words (wrapped-array->clojure (.getAs row input-field))
    :features (str (.getAs row output-field))})
 
 (defn dataset->json
+  "Converts dataset into JSON preview."
   [dataset input-field output-field]
   (mapv #(row->clojure % input-field output-field) (.collectAsList dataset)))
 
-(defn execute
-  [dataset {:keys [input_field
-                   output_field
-                   word_limit
-                   min_docs
-                   min_count]
+(defn transform
+  "Transforms tokens into feature vectors."
+  [dataset input-field output-field word-limit min-docs min-count]
+  (let [tokenized-dataset (tokenizer/transform dataset input-field "words")
+        count-vectorizer (-> (CountVectorizer.)
+                             (.setInputCol "words")
+                             (.setOutputCol output-field)
+                             (.setVocabSize word-limit)
+                             (.setMinDF min-docs)
+                             (.setMinTF min-count))
+        model (.fit count-vectorizer tokenized-dataset)]
+    (.transform model tokenized-dataset)))
 
+(defn get-vocabulary
+  "Returns CountVectorizer vocabulary."
+  [dataset input-field word-limit min-docs min-count]
+  (let [tokenized-dataset (tokenizer/transform dataset input-field "words")
+        count-vectorizer (-> (CountVectorizer.)
+                             (.setInputCol "words")
+                             (.setOutputCol "features")
+                             (.setVocabSize word-limit)
+                             (.setMinDF min-docs)
+                             (.setMinTF min-count))
+
+        model (.fit count-vectorizer tokenized-dataset)]
+    (vec (.vocabulary model))))
+
+(defn execute
+  "Executes Spark CountVectorizer."
+
+  [dataset {:keys [input_field output_field word_limit min_docs min_count]
             :or {output_field "features"
                  word_limit 262144
                  min_docs 1
@@ -34,24 +63,16 @@
     (log/info {:msg "Starting CountVectorizer"
                :input-field input_field
                :output-field output_field})
-    
-    (let [tokenized-dataset (tokenizer/transform
-                             dataset
-                             input_field
-                             "words")
-
-          count-vectorizer (-> (CountVectorizer.)
-                               (.setInputCol "words")
-                               (.setOutputCol output_field)
-                               (.setVocabSize word_limit)
-                               (.setMinDF min_docs)
-                               (.setMinTF min_count))
-          model (.fit count-vectorizer tokenized-dataset)
-          transformed-dataset (.transform model tokenized-dataset)
+    (let [transformed-dataset (transform dataset
+                                         input_field
+                                         output_field
+                                         word_limit
+                                         min_docs
+                                         min_count)
           preview (dataset->json transformed-dataset "words" output_field)]
-      {:vocabulary (vec (.vocabulary model))
-       :data preview})
 
+      (log/info {:msg "CountVectorizer completed successfully"})
+      {:data preview})
     (catch Exception err
       (throw (ex-info "CountVectorizer execution failed"
                       {:type :algorithm/count-vectorizer-failed
