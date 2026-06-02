@@ -133,7 +133,112 @@
     :optional {:threshold_values {:validator #(and
                                                (vector? %)
                                                (every? number? %))
-                                  :type "vector<float>"}}}})
+                                  :type "vector<float>"}}}
+
+   "Normalizer"
+   {:required
+    {:url {:validator string?
+           :type "string"}
+
+     :feature_field {:validator #(and (vector? %) (every? string? %))
+                     :type "vector<string>"}
+
+     :output_field {:validator string?
+                    :type "string"}}
+
+    :optional {:norm_value {:validator #(or (number? %) (= % "inf"))
+                            :type "float | \"inf\""}}}
+
+   "StandardScaler"
+   {:required {:url {:validator string?
+                     :type "string"}
+
+               :feature_field {:validator #(and (vector? %) (every? string? %))
+                               :type "vector<string>"}
+               :output_field {:validator string? :type "string"}}
+
+    :optional {:with_std {:validator boolean?
+                          :type "boolean"}
+
+               :with_mean {:validator boolean?
+                           :type "boolean"}}}
+   "Bucketizer"
+   {:required {:url {:validator string?
+                     :type "string"}
+
+               :feature_field {:validator #(and (vector? %) (every? string? %))
+                               :type "vector<string>"}
+
+               :output_field {:validator #(and (vector? %) (every? string? %))
+                              :type "vector<string>"}
+
+               :bucket_splits {:validator
+                               #(and
+                                 (vector? %)
+                                 (every? (fn [x] (and (vector? x)
+                                                      (every? number? x)))
+                                         %))
+                               :type "vector<vector<float>>"}}
+
+    :optional {:invalid_value {:validator string?
+                               :type "string"}}}
+
+   "Imputer"
+   {:required {:url {:validator string?
+                     :type "string"}
+
+               :feature_field {:validator #(and (vector? %) (every? string? %))
+                               :type "vector<string>"}
+
+               :output_field {:validator #(and (vector? %) (every? string? %))
+                              :type "vector<string>"}}
+
+    :optional {:strategy {:validator #(contains? #{"mean" "median" "mode"} %)
+                          :type "mean | median | mode"}
+
+               :missing_value {:validator vector?
+                               :type "vector<string|float>"}
+
+               :relative_error {:validator number?
+                                :type "float"}}}
+   "ChiSqSelector"
+   {:required {:url {:validator string?
+                     :type "string"}
+
+               :feature_field {:validator #(and (vector? %) (every? string? %))
+                               :type "vector<string>"}
+
+               :output_field {:validator string?
+                              :type "string"}}
+
+    :optional
+    {:target_field {:validator string?
+                    :type "string"}
+
+     :selection_method {:validator
+                        #(contains? #{"numTopFeatures"
+                                      "percentile"
+                                      "fpr"
+                                      "fdr"
+                                      "fwe"}
+                                    %)
+
+                        :type "numTopFeatures | percentile | fpr | fdr | fwe"}
+
+     :top_feature {:validator int?
+                   :type "integer"}
+
+     :selection_percentage {:validator number?
+                            :type "float"}
+
+     :fpr_threshold {:validator number?
+                     :type "float"}
+
+     :fdr_threshold {:validator number?
+                     :type "float"}
+
+     :fwe_threshold {:validator number?
+                     :type "float"}}}})
 
 (defn validate-parameter-type
   [param-name validator expected-type value]

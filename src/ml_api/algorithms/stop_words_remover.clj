@@ -2,7 +2,6 @@
   (:require
    [taoensso.timbre :as log]
    [ml-api.algorithms.tokenizer :as tokenizer])
-
   (:import
    [org.apache.spark.ml.feature StopWordsRemover]
    [scala.collection.mutable WrappedArray]))
