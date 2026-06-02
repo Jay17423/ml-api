@@ -1,4 +1,5 @@
 (ns ml-api.algorithms.imputer
+  "Spark Imputer implementation."
   (:require
    [taoensso.timbre :as log]
    [flambo.sql-functions :as sqlf])
@@ -6,50 +7,55 @@
    [org.apache.spark.ml.feature Imputer]
    [org.apache.spark.sql Dataset Column]))
 
-(defn replace-custom-missing-values
+(defn replace-values
+  "Replaces custom missing values with null."
   [dataset feature-fields missing-values]
   (reduce (fn [df column]
             (reduce (fn [updated-df missing-val]
-                      (.withColumn
-                       ^Dataset updated-df column
-                       (.cast (.otherwise (org.apache.spark.sql.functions/when
-                                           (.equalTo
-                                            ^Column (sqlf/col column)
-                                            missing-val)
-                                            nil)
-                                          (sqlf/col column))
-                              "double")))
-                    df
+                      (.withColumn ^Dataset updated-df column
+                                   (.cast (.otherwise
+                                           (org.apache.spark.sql.functions/when
+                                            (.equalTo ^Column
+                                             (sqlf/col column)
+                                                      missing-val)
+                                             nil)
+                                           (sqlf/col column))
+                                          "double")))
+                    df 
                     missing-values))
           dataset
           feature-fields))
 
 (defn row->clojure
+  "Converts Spark row into Clojure map."
   [row feature-fields output-fields]
-
-  (merge (into {} (map (fn [field] [field (.getAs row field)])
-                       feature-fields)) 
-         (into {} (map (fn [field] [field (.getAs row field)])
-                       output-fields))))
+  (merge (into {} (map (fn [field] [field (.getAs row field)]) feature-fields))
+         (into {} (map (fn [field] [field (.getAs row field)]) output-fields))))
 
 (defn dataset->json
+  "Converts dataset into JSON preview."
   [dataset feature-fields output-fields]
+  (mapv #(row->clojure % feature-fields output-fields) (.collectAsList dataset)))
 
-  (mapv #(row->clojure % feature-fields output-fields)
-        (.collectAsList dataset)))
+(defn transform
+  "Imputes missing values."
+  [dataset feature-fields output-fields strategy missing-values relative-error]
+  (let [processed-dataset (replace-values dataset feature-fields missing-values)
+        imputer (-> (Imputer.)
+                    (.setInputCols (into-array String feature-fields))
+                    (.setOutputCols (into-array String output-fields))
+                    (.setStrategy strategy)
+                    (.setRelativeError (double relative-error)))
+        model 
+        (.fit imputer processed-dataset)]
+    (.transform model processed-dataset)))
 
 (defn execute
   "Executes Spark Imputer."
-  [dataset {:keys [feature_field
-                   output_field
-                   strategy
-                   missing_value
+  [dataset {:keys [feature_field output_field strategy missing_value
                    relative_error]
 
-            :or {strategy "mean"
-                 missing_value ["NaN"]
-                 relative_error 0.0001}}]
-
+            :or {strategy "mean" missing_value ["NaN"] relative_error 0.0001}}]
   (try
     (log/info {:msg "Starting Imputer"
                :feature-field feature_field
@@ -57,27 +63,11 @@
                :strategy strategy
                :missing-value missing_value
                :relative-error relative_error})
-    (let [processed-dataset (replace-custom-missing-values
-                             dataset
-                             feature_field
-                             missing_value)
-          imputer (-> (Imputer.)
-                      (.setInputCols (into-array String feature_field))
-                      (.setOutputCols (into-array String output_field))
-                      (.setStrategy strategy)
-                      (.setRelativeError (double relative_error)))
-
-          model (.fit imputer processed-dataset)
-
-          transformed-dataset
-          (.transform model
-                      processed-dataset)
-
-          preview
-          (dataset->json
-           transformed-dataset
-           feature_field
-           output_field)]
+    (let [transformed-ds (transform dataset feature_field output_field
+                                    strategy
+                                    missing_value
+                                    relative_error)
+          preview (dataset->json transformed-ds feature_field output_field)]
       (log/info {:msg "Imputer completed successfully"})
       {:data preview})
     (catch Exception err

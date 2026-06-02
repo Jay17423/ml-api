@@ -1,4 +1,5 @@
 (ns ml-api.algorithms.vector-assembler
+  "Creates Feature vector of ML pipelines"
    (:require
     [taoensso.timbre :as log])
    (:import
@@ -8,14 +9,12 @@
     "Creates feature vector column using Spark VectorAssembler."
     [dataset feature-cols]
     (try
-      (log/info
-       {:msg "Creating feature vectors"
-        :metric {:feature-cols feature-cols}})
+      (log/info {:msg "Creating feature vectors"
+                 :metric {:feature-cols feature-cols}})
       (let [assembler (-> (VectorAssembler.)
                           (.setInputCols (into-array String feature-cols))
                           (.setOutputCol "features"))]
-        (log/info
-         {:msg "Feature vectors created successfully"})
+        (log/info {:msg "Feature vectors created successfully"})
         (.transform assembler dataset))
       (catch Exception err
         (throw (ex-info "Feature vector creation failed"
