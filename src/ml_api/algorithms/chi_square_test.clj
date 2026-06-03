@@ -1,21 +1,10 @@
 (ns ml-api.algorithms.chi-square-test
   (:require
    [taoensso.timbre :as log]
-   [ml-api.algorithms.vector-assembler :as va])
+   [ml-api.algorithms.vector-assembler :as va]
+   [ml-api.utils :as utils])
   (:import
-   [org.apache.spark.ml.stat ChiSquareTest]
-   [org.apache.spark.ml.linalg Vector]
-   [scala.collection.mutable WrappedArray]))
-
-(defn vector->clojure
-  "Converts Spark Vector into Clojure vector."
-  [spark-vec]
-  (vec (.toArray ^Vector spark-vec)))
-
-(defn wrapped-array->clojure
-  "Converts Scala WrappedArray into Clojure vector."
-  [wrapped-array]
-  (vec (.array ^WrappedArray wrapped-array)))
+   [org.apache.spark.ml.stat ChiSquareTest]))
 
 (defn parse-result
   "Parses Spark ChiSquareTest result."
@@ -25,9 +14,9 @@
         statistics (.getAs result-row "statistics")]
 
     (if flatten
-      {:p-values (vector->clojure p-values)
-       :degrees-of-freedom (wrapped-array->clojure degrees-of-freedom)
-       :statistics (vector->clojure statistics)} 
+      {:p-values (utils/vector->clojure p-values)
+       :degrees-of-freedom (utils/wrapped-array->clojure degrees-of-freedom)
+       :statistics (utils/vector->clojure statistics)}
       {:p-values p-values
        :degrees-of-freedom degrees-of-freedom
        :statistics statistics})))

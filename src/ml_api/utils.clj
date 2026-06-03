@@ -2,21 +2,22 @@
   (:require
    [flambo.sql :as sql])
   (:import
-   [org.apache.spark.ml.linalg DenseVector SparseVector]))
+   [org.apache.spark.ml.linalg Vector]
+   [scala.collection.mutable WrappedArray]))
 
 (defn vector->clojure
   "Converts Spark vectors into normal Clojure vectors."
-  [value] 
+  [value]
   (cond
-    ;; Dense Vector
-    (instance? DenseVector value) 
-    (vec (.toArray value))
-    ;; Sparse Vector
-    (instance? SparseVector value)
-    (vec (.toArray value))
-    ;; Default
+    (instance? Vector value)
+    (vec (.toArray ^Vector value))
     :else
     value))
+
+(defn wrapped-array->clojure
+  "Converts Scala WrappedArray into Clojure vector."
+  [wrapped-array]
+  (vec (.array ^WrappedArray wrapped-array)))
 
 (defn normalize-row
   "Normalizes Spark row map values."

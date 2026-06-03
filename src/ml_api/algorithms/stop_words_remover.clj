@@ -2,20 +2,15 @@
   "Spark StopWordsRemover implementation."
   (:require
    [taoensso.timbre :as log]
-   [ml-api.algorithms.tokenizer :as tokenizer])
+   [ml-api.algorithms.tokenizer :as tokenizer]
+   [ml-api.utils :as utils])
   (:import
-   [org.apache.spark.ml.feature StopWordsRemover]
-   [scala.collection.mutable WrappedArray]))
-
-(defn wrapped-array->clojure
-  "Converts WrappedArray into Clojure vector."
-  [wrapped-array]
-  (vec (.array ^WrappedArray wrapped-array)))
+   [org.apache.spark.ml.feature StopWordsRemover]))
 
 (defn row->clojure
   "Converts Spark row into Clojure map."
   [row output-field]
-  {:filtered_words (wrapped-array->clojure (.getAs row output-field))})
+  {:filtered_words (utils/wrapped-array->clojure (.getAs row output-field))})
 
 (defn dataset->json
   "Converts dataset into JSON preview."

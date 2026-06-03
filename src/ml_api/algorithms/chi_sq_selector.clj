@@ -1,20 +1,14 @@
 (ns ml-api.algorithms.chi-sq-selector
   (:require
    [taoensso.timbre :as log]
-   [ml-api.algorithms.vector-assembler :as va])
+   [ml-api.algorithms.vector-assembler :as va]
+   [ml-api.utils :as utils])
   (:import
-   [org.apache.spark.ml.feature ChiSqSelector]
-   [org.apache.spark.ml.linalg Vector]))
-
-
-(defn vector->clojure
-  [spark-vec]
-  (when spark-vec (vec (.toArray ^Vector spark-vec))))
+   [org.apache.spark.ml.feature ChiSqSelector]))
 
 (defn row->clojure
   [row output-field]
-
-  {:selected-features (vector->clojure (.getAs row output-field))})
+  {:selected-features (utils/vector->clojure (.getAs row output-field))})
 
 (defn dataset->json
   [dataset output-field]
@@ -22,18 +16,13 @@
 
 (defn execute
   "Executes Spark ChiSqSelector."
-
-  [dataset {:keys [feature_field
-                   target_field
-                   output_field
-                   selection_method
+  [dataset {:keys [feature_field target_field output_field selection_method
                    top_feature
                    selection_percentage
                    fpr_threshold
                    fdr_threshold
                    fwe_threshold]
-            :or {target_field "label"
-                 selection_method "numTopFeatures"
+            :or {target_field "label" selection_method "numTopFeatures"
                  top_feature 50
                  selection_percentage 0.1
                  fpr_threshold 0.05
@@ -82,7 +71,7 @@
 
                      selector)
           model (.fit selector vectorized-dataset)
-          transformed-dataset (.transform model vectorized-dataset)
+          transformed-dataset (.transform model vectorized-dataset) 
           preview (dataset->json transformed-dataset output_field)]
       (log/info {:msg "ChiSqSelector completed successfully"})
       {:data preview})

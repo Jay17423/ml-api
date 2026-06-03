@@ -46,7 +46,7 @@
     (let [transformed-dataset (transform dataset feature_field output_field
                                          bucket_splits
                                          invalid_value)
-
+          _ (.show transformed-dataset)
           preview (dataset->json transformed-dataset feature_field
                                  output_field)]
       (log/info {:msg "Bucketizer completed successfully"})

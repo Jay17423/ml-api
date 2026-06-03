@@ -1,26 +1,17 @@
 (ns ml-api.algorithms.bucketed-random-projection-lsh
   (:require
    [taoensso.timbre :as log]
-   [ml-api.algorithms.vector-assembler :as va])
+   [ml-api.algorithms.vector-assembler :as va]
+   [ml-api.utils :as utils])
   (:import
-   [org.apache.spark.ml.feature BucketedRandomProjectionLSH]
-   [org.apache.spark.ml.linalg Vector]
-   [scala.collection.mutable WrappedArray]))
-
-(defn vector->clojure
-  [spark-vec]
-  (when spark-vec (vec (.toArray ^Vector spark-vec))))
-
-(defn wrapped-array->clojure
-  [wrapped-array]
-  (vec (.array ^WrappedArray wrapped-array)))
+   [org.apache.spark.ml.feature BucketedRandomProjectionLSH]))
 
 (defn row->clojure
   [row output-field]
 
   {:hashes (mapv (fn [hash-vector]
-                   (vector->clojure hash-vector))
-                 (wrapped-array->clojure
+                   (utils/vector->clojure hash-vector))
+                 (utils/wrapped-array->clojure
                   (.getAs row output-field)))})
 
 (defn dataset->json

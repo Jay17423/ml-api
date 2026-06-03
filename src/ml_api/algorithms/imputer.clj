@@ -46,8 +46,7 @@
                     (.setOutputCols (into-array String output-fields))
                     (.setStrategy strategy)
                     (.setRelativeError (double relative-error)))
-        model 
-        (.fit imputer processed-dataset)]
+        model (.fit imputer processed-dataset)]
     (.transform model processed-dataset)))
 
 (defn execute
@@ -66,7 +65,7 @@
     (let [transformed-ds (transform dataset feature_field output_field
                                     strategy
                                     missing_value
-                                    relative_error)
+                                    relative_error) 
           preview (dataset->json transformed-ds feature_field output_field)]
       (log/info {:msg "Imputer completed successfully"})
       {:data preview})

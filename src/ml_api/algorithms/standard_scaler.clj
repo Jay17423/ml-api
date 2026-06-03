@@ -2,20 +2,15 @@
   "Spark StandardScaler implementation."
   (:require
    [taoensso.timbre :as log]
-   [ml-api.algorithms.vector-assembler :as va])
+   [ml-api.algorithms.vector-assembler :as va]
+   [ml-api.utils :as utils])
   (:import
-   [org.apache.spark.ml.feature StandardScaler]
-   [org.apache.spark.ml.linalg Vector]))
-
-(defn vector->clojure
-  "Converts Spark Vector into Clojure vector."
-  [spark-vec]
-  (vec (.toArray ^Vector spark-vec)))
+   [org.apache.spark.ml.feature StandardScaler]))
 
 (defn row->clojure
   "Converts Spark row into Clojure map."
   [row output-field]
-  {:scaled-features (vector->clojure (.getAs row output-field))})
+  {:scaled-features (utils/vector->clojure (.getAs row output-field))})
 
 (defn dataset->json
   "Converts dataset into JSON preview."
@@ -49,6 +44,7 @@
     (let [transformed-dataset (transform dataset feature_field output_field
                                          with_std
                                          with_mean)
+          _ (.show transformed-dataset)
           preview (dataset->json transformed-dataset output_field)]
 
       (log/info {:msg "StandardScaler completed successfully"})

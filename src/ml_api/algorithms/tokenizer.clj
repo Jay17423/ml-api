@@ -1,21 +1,16 @@
 (ns ml-api.algorithms.tokenizer
   "Spark Tokenizer implementations."
   (:require
-   [taoensso.timbre :as log])
+   [taoensso.timbre :as log]
+   [ml-api.utils :as utils])
   (:import
-   [org.apache.spark.ml.feature Tokenizer RegexTokenizer]
-   [scala.collection.mutable WrappedArray]))
-
-(defn wrapped-array->clojure
-  "Converts WrappedArray into Clojure vector."
-  [wrapped-array]
-  (vec (.array ^WrappedArray wrapped-array)))
+   [org.apache.spark.ml.feature Tokenizer RegexTokenizer]))
 
 (defn row->clojure
   "Converts Spark row into Clojure map."
   [row input-field output-field]
   {:input (.getAs row input-field)
-   :tokens (wrapped-array->clojure (.getAs row output-field))})
+   :tokens (utils/wrapped-array->clojure (.getAs row output-field))})
 
 (defn dataset->json
   "Converts dataset into JSON preview."
@@ -32,7 +27,7 @@
 
 (defn regex-transform
   "Transforms text using RegexTokenizer."
-  [dataset input-field output-field pattern pattern-as-delimiter 
+  [dataset input-field output-field pattern pattern-as-delimiter
    minimum-token-length convert-to-lowercase]
   (let [tokenizer (-> (RegexTokenizer.)
                       (.setInputCol input-field)
@@ -83,7 +78,7 @@
                :output-field output_field})
 
     (let [transformed-dataset (regex-transform
-                               dataset 
+                               dataset
                                input_field
                                output_field
                                pattern

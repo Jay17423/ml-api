@@ -27,16 +27,6 @@
         model (.fit indexer dataset)]
     (.transform model dataset)))
 
-(defn get-labels
-  "Returns indexed labels."
-  [dataset input-fields output-fields invalid-value label-order]
-  (let [indexer (-> (StringIndexer.)
-                    (.setInputCols (into-array String input-fields))
-                    (.setOutputCols (into-array String output-fields))
-                    (.setHandleInvalid invalid-value)
-                    (.setStringOrderType label-order))
-        model (.fit indexer dataset)]
-    (mapv vec (.labelsArray model))))
 
 (defn execute
   "Executes Spark StringIndexer."
@@ -54,16 +44,10 @@
                                    output_fields
                                    invalid_value
                                    label_order)
-          labels (get-labels dataset
-                             input_fields
-                             output_fields
-                             invalid_value
-                             label_order)
           preview (dataset->json trans-dataset input_fields output_fields)]
 
       (log/info {:msg "StringIndexer completed successfully"})
-      {:labels labels
-       :data preview})
+      {:data preview})
     (catch Exception err
       (throw (ex-info "StringIndexer execution failed"
                       {:type :algorithm/string-indexer-failed
