@@ -28,6 +28,7 @@
    [ml-api.algorithms.glr :as glr]
    [ml-api.algorithms.lda :as lda]
    [ml-api.algorithms.glr-model :as glr-model]
+   [ml-api.preprocessing :as preprocess]
    [taoensso.timbre :as log]
    [omniconf.core :as cfg]
    [ml-api.specs :as specs]))
@@ -110,22 +111,20 @@
   "Handles ML execution request."
   [req]
   (specs/validate-request (:body req))
-  (let [{:keys [algorithm parameters]} (:body req)
-        _ (log/info {:msg "ML request received"
-                     :algorithm algorithm})
-        dataset (ds/read-dataset session parameters)
-        result (execute-algorithm algorithm dataset parameters)
+  (let [{:keys [algorithm parameters]}
+        (:body req)
+        _ (log/info {:msg "ML request received" :algorithm algorithm})
+        raw-dataset (ds/read-dataset session parameters)
+        processed-dataset (preprocess/preprocess-dataset raw-dataset parameters)
+        result (execute-algorithm algorithm processed-dataset parameters)
         duration (- (System/currentTimeMillis) (:start-time req))]
-    (log/info
-     {:msg "ML execution completed"
-      :algorithm algorithm
-      :metric {:duration-ms duration}})
-
-    (-> (response
-         {:status "success"
-          :duration-ms duration
-          :result result
-          :parameters parameters})
+    (log/info {:msg "ML execution completed"
+               :algorithm algorithm
+               :metric {:duration-ms duration}})
+    (-> (response {:status "success"
+                   :duration-ms duration
+                   :result result
+                   :parameters parameters})
         (status 200))))
 
 (defroutes app-routes
