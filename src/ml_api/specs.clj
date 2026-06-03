@@ -359,7 +359,24 @@
                                           :type "string"}
 
                :keep_last_checkpoint {:validator boolean?
-                                      :type "boolean"}}}})
+                                      :type "boolean"}}}
+
+   "GeneralizedLinearRegressionModel"
+   {:required {:url {:validator string?
+                     :type "string"}
+
+               :model_path {:validator string?
+                            :type "string"}
+
+               :feature_field {:validator
+                               #(and (vector? %) (every? string? %))
+                               :type "vector<string>"}
+
+               :target_field {:validator string?
+                              :type "string"}}
+
+    :optional {:output_field {:validator string?
+                              :type "string"}}}})
 
 (defn validate-parameter-type
   [param-name validator expected-type value]

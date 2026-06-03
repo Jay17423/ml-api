@@ -42,10 +42,8 @@
                                          output_field
                                          threshold_values)
           preview (dataset->json transformed-dataset input_field output_field)]
-
       (log/info {:msg "Binarizer completed successfully"})
       {:data preview})
-
     (catch Exception err
       (throw (ex-info "Binarizer execution failed"
                       {:type :algorithm/binarizer-failed

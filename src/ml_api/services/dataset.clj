@@ -1,4 +1,5 @@
 (ns ml-api.services.dataset
+  "Loads CSV data into Spark and return as a Spark Dataset"
   (:require
    [taoensso.timbre :as log]))
 

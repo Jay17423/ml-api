@@ -25,18 +25,22 @@
    [ml-api.algorithms.imputer :as imp]
    [ml-api.algorithms.chi-sq-selector :as css]
    [ml-api.algorithms.bucketed-random-projection-lsh :as brp]
-   [ml-api.algorithms.generalized-linear-regression :as glr]
+   [ml-api.algorithms.glr :as glr]
    [ml-api.algorithms.lda :as lda]
+   [ml-api.algorithms.glr-model :as glr-model]
    [taoensso.timbre :as log]
    [omniconf.core :as cfg]
    [ml-api.specs :as specs]))
 
 "TODO : 1. change all underscore params name to kebab case after completing the 
  project
- 2. Cast into to double for csv file and I will do it in  preprocessing.clj file
-  later
- 3. Verify the docstring in all the namespaces and funtion.
- 4. Add termIndices in the LDA algorithm"
+ 2. Cast all integer cols  to double for csv file and I will do it in  preprocessing.clj file
+  later, check the provided cols is present or not,
+ 3. Verify the docstring in all the namespaces and funtion (DONE)
+ 4. Add termIndices in the LDA algorithm
+ 5. Refactor all the repeating code and put it int the utility file
+ 6. Dataframe to dataset me conversion"
+ 
 
 (defn execute-algorithm
   "Dispatches ML algorithm execution."
@@ -94,6 +98,9 @@
 
     "LDA"
     (lda/execute dataset parameters)
+
+    "GeneralizedLinearRegressionModel"
+    (glr-model/execute dataset parameters)
 
     (throw (ex-info "Unsupported algorithm"
                     {:type :algorithm/not-supported

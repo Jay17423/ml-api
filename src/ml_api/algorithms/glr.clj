@@ -1,4 +1,4 @@
-(ns ml-api.algorithms.generalized-linear-regression
+(ns ml-api.algorithms.glr
   (:require
    [taoensso.timbre :as log]
    [ml-api.algorithms.vector-assembler :as va])
@@ -34,7 +34,6 @@
                    link_output_field
                    offset_field
                    aggregation_depth]
-
             :or {output_field "prediction"
                  regression_family "gaussian"
                  include_intercept true
@@ -77,14 +76,12 @@
           model (.fit glr vectorized-dataset)
           _ (when model_path
               (.save (.write model) model_path))
-
+          
           transformed-dataset (.transform model vectorized-dataset)
-
           preview (dataset->json transformed-dataset target_field output_field)]
-
+      
       (log/info {:msg "GeneralizedLinearRegression completed successfully"})
-      {:data preview})
-    
+      {:data preview}) 
     (catch Exception err
       (throw (ex-info "GeneralizedLinearRegression execution failed"
                       {:type :algorithm/generalized-linear-regression-failed
