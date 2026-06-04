@@ -20,7 +20,6 @@
            (preprocess/get-required-columns {:feature_field ["salary" "bonus"]
                                              :text_field "review_text"
                                              :target_field "target"}))))
-
   (testing "Removes duplicate columns"
     (is (= ["salary"] (preprocess/get-required-columns
                        {:feature_field ["salary"]
@@ -34,7 +33,6 @@
     (with-redefs [preprocess/get-required-columns
                   (fn [_]
                     (throw (RuntimeException. "failed")))]
-
       (is (thrown-with-msg?
            clojure.lang.ExceptionInfo
            #"Dataset preprocessing failed"
