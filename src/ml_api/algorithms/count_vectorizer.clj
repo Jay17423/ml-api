@@ -15,27 +15,27 @@
 
 (defn dataset->json
   "Converts dataset into JSON preview."
-  [dataset input-field output-field]
-  (mapv #(row->clojure % input-field output-field) (.collectAsList dataset)))
+  [ds input-field output-field]
+  (mapv #(row->clojure % input-field output-field) (.collectAsList ds)))
 
 (defn fit-transform
   "Fits CountVectorizer model and returns transformed dataset and model."
-  [dataset input-field output-field word-limit min-docs min-count]
+  [ds input-field output-field word-limit min-docs min-count]
   (let [count-vectorizer (-> (CountVectorizer.)
                              (.setInputCol input-field)
                              (.setOutputCol output-field)
                              (.setVocabSize word-limit)
                              (.setMinDF min-docs)
                              (.setMinTF min-count))
-        model (.fit count-vectorizer dataset)
-        transformed-dataset (.transform model dataset)]
+        model (.fit count-vectorizer ds)
+        transformed-dataset (.transform model ds)]
     {:dataset transformed-dataset
      :model model}))
 
 (defn transform
   "Transforms tokens into feature vectors."
-  [dataset input-field output-field word-limit min-docs min-count]
-  (let [tokenized-dataset (tokenizer/transform dataset input-field "words")
+  [ds input-field output-field word-limit min-docs min-count]
+  (let [tokenized-dataset (tokenizer/transform ds input-field "words")
         count-vectorizer (-> (CountVectorizer.)
                              (.setInputCol "words")
                              (.setOutputCol output-field)
@@ -45,32 +45,31 @@
         model (.fit count-vectorizer tokenized-dataset)]
     (.transform model tokenized-dataset)))
 
-(comment (defn get-vocabulary
+(comment(defn get-vocabulary
   "Returns CountVectorizer vocabulary."
-  [dataset input-field word-limit min-docs min-count]
-  (let [tokenized-dataset (tokenizer/transform dataset input-field "words")
+  [ds input-field word-limit min-docs min-count]
+  (let [tokenized-dataset (tokenizer/transform ds input-field "words")
         count-vectorizer (-> (CountVectorizer.)
                              (.setInputCol "words")
                              (.setOutputCol "features")
                              (.setVocabSize word-limit)
                              (.setMinDF min-docs)
                              (.setMinTF min-count))
-
         model (.fit count-vectorizer tokenized-dataset)]
     (vec (.vocabulary model)))))
 
 (defn execute
   "Executes Spark CountVectorizer."
-  [dataset {:keys [input_field output_field word_limit min_docs min_count]
-            :or {output_field "features"
-                 word_limit 262144
-                 min_docs 1
-                 min_count 1.0}}]
+  [ds {:keys [input_field output_field word_limit min_docs min_count]
+       :or {output_field "features"
+            word_limit 262144
+            min_docs 1
+            min_count 1.0}}]
   (try
     (log/info {:msg "Starting CountVectorizer"
                :input-field input_field
                :output-field output_field})
-    (let [transformed-dataset (transform dataset
+    (let [transformed-dataset (transform ds
                                          input_field
                                          output_field
                                          word_limit

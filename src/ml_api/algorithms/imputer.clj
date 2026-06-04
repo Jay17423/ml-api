@@ -9,7 +9,7 @@
 
 (defn replace-values
   "Replaces custom missing values with null."
-  [dataset feature-fields missing-values]
+  [ds feature-fields missing-values]
   (reduce (fn [df column]
             (reduce (fn [updated-df missing-val]
                       (.withColumn ^Dataset updated-df column
@@ -21,9 +21,9 @@
                                              nil)
                                            (sqlf/col column))
                                           "double")))
-                    df 
+                    df
                     missing-values))
-          dataset
+          ds
           feature-fields))
 
 (defn row->clojure
@@ -34,27 +34,25 @@
 
 (defn dataset->json
   "Converts dataset into JSON preview."
-  [dataset feature-fields output-fields]
-  (mapv #(row->clojure % feature-fields output-fields) (.collectAsList dataset)))
+  [ds feature-fields output-fields]
+  (mapv #(row->clojure % feature-fields output-fields) (.collectAsList ds)))
 
 (defn transform
   "Imputes missing values."
-  [dataset feature-fields output-fields strategy missing-values relative-error]
-  (let [processed-dataset (replace-values dataset feature-fields missing-values)
+  [ds feature-fields output-fields strategy missing-values relative-error]
+  (let [processed-ds (replace-values ds feature-fields missing-values)
         imputer (-> (Imputer.)
                     (.setInputCols (into-array String feature-fields))
                     (.setOutputCols (into-array String output-fields))
                     (.setStrategy strategy)
                     (.setRelativeError (double relative-error)))
-        model (.fit imputer processed-dataset)]
-    (.transform model processed-dataset)))
+        model (.fit imputer processed-ds)]
+    (.transform model processed-ds)))
 
 (defn execute
   "Executes Spark Imputer."
-  [dataset {:keys [feature_field output_field strategy missing_value
-                   relative_error]
-
-            :or {strategy "mean" missing_value ["NaN"] relative_error 0.0001}}]
+  [ds {:keys [feature_field output_field strategy missing_value relative_error]
+       :or {strategy "mean" missing_value ["NaN"] relative_error 0.0001}}]
   (try
     (log/info {:msg "Starting Imputer"
                :feature-field feature_field
@@ -62,10 +60,10 @@
                :strategy strategy
                :missing-value missing_value
                :relative-error relative_error})
-    (let [transformed-ds (transform dataset feature_field output_field
+    (let [transformed-ds (transform ds feature_field output_field
                                     strategy
                                     missing_value
-                                    relative_error) 
+                                    relative_error)
           preview (dataset->json transformed-ds feature_field output_field)]
       (log/info {:msg "Imputer completed successfully"})
       {:data preview})

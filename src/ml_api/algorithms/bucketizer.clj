@@ -13,8 +13,8 @@
 
 (defn dataset->json
   "Converts dataset into JSON preview."
-  [dataset feature-fields output-fields]
-  (mapv #(row->clojure % feature-fields output-fields) (.collectAsList dataset)))
+  [ds feature-fields output-fields]
+  (mapv #(row->clojure % feature-fields output-fields) (.collectAsList ds)))
 
 (defn splits->2d-array
   "Converts bucket splits into 2D double array."
@@ -23,19 +23,18 @@
 
 (defn transform
   "Transforms numeric values into buckets."
-  [dataset feature-fields output-fields bucket-splits invalid-value]
+  [ds feature-fields output-fields bucket-splits invalid-value]
   (let [bucketizer (-> (Bucketizer.)
                        (.setInputCols (into-array String feature-fields))
                        (.setOutputCols (into-array String output-fields))
                        (.setSplitsArray (splits->2d-array bucket-splits))
                        (.setHandleInvalid invalid-value))]
-    (.transform bucketizer dataset)))
+    (.transform bucketizer ds)))
 
 (defn execute
   "Executes Spark Bucketizer."
-  [dataset {:keys [feature_field output_field bucket_splits invalid_value]
-            :or {invalid_value "error"}}]
-
+  [ds {:keys [feature_field output_field bucket_splits invalid_value]
+       :or {invalid_value "error"}}]
   (try
     (log/info {:msg "Starting Bucketizer"
                :feature-field feature_field
@@ -43,12 +42,10 @@
                :bucket-splits bucket_splits
                :invalid-value invalid_value})
 
-    (let [transformed-dataset (transform dataset feature_field output_field
-                                         bucket_splits
-                                         invalid_value)
-          _ (.show transformed-dataset)
-          preview (dataset->json transformed-dataset feature_field
-                                 output_field)]
+    (let [transformed-ds (transform ds feature_field output_field
+                                    bucket_splits
+                                    invalid_value)
+          preview (dataset->json transformed-ds feature_field output_field)]
       (log/info {:msg "Bucketizer completed successfully"})
       {:data preview})
     (catch Exception err

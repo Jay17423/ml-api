@@ -1,4 +1,6 @@
 (ns ml-api.algorithms.bucketed-random-projection-lsh
+  "Spark Bucketed Random Projection LSH implementation for
+  approximate similarity search on feature vectors."
   (:require
    [taoensso.timbre :as log]
    [ml-api.algorithms.vector-assembler :as va]
@@ -7,26 +9,22 @@
    [org.apache.spark.ml.feature BucketedRandomProjectionLSH]))
 
 (defn row->clojure
+   "Converts Spark hash row into Clojure map."
   [row output-field]
-
   {:hashes (mapv (fn [hash-vector]
                    (utils/vector->clojure hash-vector))
-                 (utils/wrapped-array->clojure
-                  (.getAs row output-field)))})
+                 (utils/wrapped-array->clojure (.getAs row output-field)))})
 
 (defn dataset->json
-  [dataset output-field]
-  (mapv #(row->clojure % output-field) (.collectAsList dataset)))
+  "Converts transformed dataset into preview JSON."
+  [ds output-field]
+  (mapv #(row->clojure % output-field) (.collectAsList ds)))
 
 (defn execute
   "Executes Spark BucketedRandomProjectionLSH."
-  [dataset {:keys [feature_field
-                   output_field
-                   bucket_length
-                   num_hash_tables
-                   random_seed]
-            :or {output_field "hashes"
-                 num_hash_tables 1}}]
+  [ds {:keys [feature_field output_field bucket_length num_hash_tables
+              random_seed]
+       :or {output_field "hashes" num_hash_tables 1}}]
 
   (try
     (log/info
@@ -36,7 +34,7 @@
       :bucket-length bucket_length
       :num-hash-tables num_hash_tables
       :random-seed random_seed})
-    (let [vectorized-dataset (va/create-feature-vector dataset feature_field)
+    (let [vectorized-ds (va/create-feature-vector ds feature_field)
           lsh (-> (BucketedRandomProjectionLSH.)
                   (.setInputCol "features")
                   (.setOutputCol output_field)
@@ -45,16 +43,14 @@
 
           lsh (if random_seed (.setSeed lsh random_seed)
                   lsh)
-          model (.fit lsh vectorized-dataset)
-          transformed-dataset (.transform model vectorized-dataset)
-          preview (dataset->json transformed-dataset output_field)]
+          model (.fit lsh vectorized-ds)
+          transformed-ds (.transform model vectorized-ds)
+          preview (dataset->json transformed-ds output_field)]
       (log/info {:msg "BucketedRandomProjectionLSH completed successfully"})
       {:data preview})
     (catch Exception err
       (throw (ex-info "BucketedRandomProjectionLSH execution failed"
-
                       {:type :algorithm/bucketed-random-projection-lsh-failed
                        :feature-field feature_field
                        :error (.getMessage err)}
-
                       err)))))

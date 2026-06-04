@@ -14,44 +14,34 @@
 
 (defn dataset->json
   "Converts dataset into JSON preview."
-  [dataset output-field]
-  (mapv #(row->clojure % output-field) (.collectAsList dataset)))
+  [ds output-field]
+  (mapv #(row->clojure % output-field) (.collectAsList ds)))
 
 (defn transform
   "Removes stop words from tokens."
-  [dataset input-field output-field stop-words case-sensitive]
+  [ds input-field output-field stop-words case-sensitive]
   (let [token-column "tokens"
-        tokenized-dataset (tokenizer/transform dataset input-field token-column)
+        tokenized-ds (tokenizer/transform ds input-field token-column)
         remover (cond->
                  (-> (StopWordsRemover.)
                      (.setInputCol token-column)
                      (.setOutputCol output-field)
                      (.setCaseSensitive case-sensitive))
                   stop-words (.setStopWords (into-array String stop-words)))]
-    (.transform remover tokenized-dataset)))
+    (.transform remover tokenized-ds)))
 
 (defn execute
   "Executes Spark StopWordsRemover."
-  [dataset {:keys [input_field
-                   output_field
-                   stop_words
-                   case_sensitive]
-            :or {output_field "filtered_words"
-                 case_sensitive false}}]
-
+  [ds {:keys [input_field output_field stop_words case_sensitive]
+       :or {output_field "filtered_words" case_sensitive false}}]
   (try
     (log/info {:msg "Starting StopWordsRemover"
                :input-field input_field
                :output-field output_field})
 
-    (let [transformed-dataset (transform
-                               dataset
-                               input_field
-                               output_field
-                               stop_words
-                               case_sensitive)
-          preview (dataset->json transformed-dataset output_field)]
-
+    (let [transformed-ds (transform ds input_field output_field stop_words
+                                    case_sensitive)
+          preview (dataset->json transformed-ds output_field)]
       (log/info {:msg "StopWordsRemover completed successfully"})
       {:data preview})
     (catch Exception err

@@ -30,8 +30,8 @@
 
 (defn dataset->preview
   "Converts Spark dataset preview into JSON-safe maps."
-  [dataset]
-  (->> (.limit dataset 10)
+  [ds]
+  (->> (.limit ds 10)
        sql/collect
        (map sql/row->map)
        (map normalize-row)))

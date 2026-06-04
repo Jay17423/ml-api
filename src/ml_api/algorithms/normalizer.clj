@@ -19,34 +19,31 @@
 
 (defn dataset->json
   "Converts dataset into JSON preview."
-  [dataset output-field]
-  (mapv #(row->clojure % output-field) (.collectAsList dataset)))
+  [ds output-field]
+  (mapv #(row->clojure % output-field) (.collectAsList ds)))
 
 (defn transform
   "Normalizes feature vectors."
-  [dataset feature-field output-field norm-value]
-  (let [vectorized-dataset (va/create-feature-vector dataset feature-field)
+  [ds feature-field output-field norm-value]
+  (let [vectorized-ds (va/create-feature-vector ds feature-field)
         normalizer (-> (Normalizer.)
                        (.setInputCol "features")
                        (.setOutputCol output-field)
                        (.setP (parse-norm-value norm-value)))]
-    (.transform normalizer vectorized-dataset)))
+    (.transform normalizer vectorized-ds)))
 
 (defn execute
   "Executes Spark Normalizer."
-  [dataset {:keys [feature_field output_field norm_value]
-            :or {output_field "normalized_features" norm_value 2.0}}]
+  [ds {:keys [feature_field output_field norm_value]
+       :or {output_field "normalized_features" norm_value 2.0}}]
   (try
     (log/info {:msg "Starting Normalizer"
                :feature-field feature_field
                :output-field output_field
                :norm-value norm_value})
-
-    (let [transformed-dataset (transform dataset feature_field output_field
-                                         norm_value)
-          _ (.show transformed-dataset)
-          preview (dataset->json transformed-dataset output_field)]
-
+    (let [transformed-ds (transform ds feature_field output_field norm_value)
+          _ (.show transformed-ds)
+          preview (dataset->json transformed-ds output_field)]
       (log/info {:msg "Normalizer completed successfully"})
       {:norm-type norm_value
        :data preview})

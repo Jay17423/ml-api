@@ -13,35 +13,30 @@
 
 (defn dataset->json
   "Converts dataset into JSON preview."
-  [dataset input-fields output-fields]
-  (mapv #(row->clojure % input-fields output-fields) (.collectAsList dataset)))
+  [ds input-fields output-fields]
+  (mapv #(row->clojure % input-fields output-fields) (.collectAsList ds)))
 
 (defn transform
   "Transforms numeric values into binary values."
-  [dataset input-fields output-fields threshold-values]
+  [ds input-fields output-fields threshold-values]
   (let [binarizer (-> (Binarizer.)
                       (.setInputCols (into-array String input-fields))
                       (.setOutputCols (into-array String output-fields))
                       (.setThresholds (double-array threshold-values)))]
-
-    (.transform binarizer dataset)))
+    (.transform binarizer ds)))
 
 (defn execute
   "Executes Spark Binarizer."
-  [dataset {:keys [input_field output_field threshold_values]
+  [ds {:keys [input_field output_field threshold_values]
             :or {threshold_values [0.0]}}]
-
   (try
     (log/info {:msg "Starting Binarizer"
                :input-field input_field
                :output-field output_field
                :threshold-values threshold_values})
-
-    (let [transformed-dataset (transform dataset
-                                         input_field
-                                         output_field
-                                         threshold_values)
-          preview (dataset->json transformed-dataset input_field output_field)]
+    (let [transformed-ds (transform ds input_field output_field
+                                    threshold_values)
+          preview (dataset->json transformed-ds input_field output_field)]
       (log/info {:msg "Binarizer completed successfully"})
       {:data preview})
     (catch Exception err

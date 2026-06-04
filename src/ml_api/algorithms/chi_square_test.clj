@@ -1,4 +1,5 @@
 (ns ml-api.algorithms.chi-square-test
+  "Spark Chi-Square_Test Implementation"
   (:require
    [taoensso.timbre :as log]
    [ml-api.algorithms.vector-assembler :as va]
@@ -23,20 +24,14 @@
 
 (defn execute
   "Executes Spark ChiSquareTest."
-  [dataset
-   {:keys [label_field feature_field flatten] :or {flatten true}}]
+  [ds {:keys [label_field feature_field flatten] :or {flatten true}}]
   (try
-    (let [vectorized-dataset (va/create-feature-vector dataset feature_field)
-          result-df (ChiSquareTest/test
-                     vectorized-dataset
-                     "features"
-                     label_field)
+    (let [vectorized-ds (va/create-feature-vector ds feature_field)
+          result-df (ChiSquareTest/test vectorized-ds "features" label_field)
           result-row (.head result-df)]
-
       (log/info {:msg "ChiSquareTest completed successfully"
                  :label-field label_field
                  :flatten flatten})
-
       {:data (parse-result result-row flatten)})
     (catch Exception err
       (throw (ex-info "ChiSquareTest execution failed"

@@ -34,89 +34,85 @@
    [ml-api.specs :as specs]))
 
 "TODO : 1. change all underscore params name to kebab case after completing the 
- project
+ project(DONE)
  2. Cast all integer cols  to double for csv file and I will do it in  preprocessing.clj file
-  later, check the provided cols is present or not,
+  later, check the provided cols is present or not(DONE),
  3. Verify the docstring in all the namespaces and funtion (DONE)
- 4. Add termIndices in the LDA algorithm
- 5. Refactor all the repeating code and put it int the utility file
- 6. Dataframe to dataset me conversion"
+ 4. Add termIndices in the LDA algorithm(DONE)
+ 5. Refactor all the repeating code and put it int the utility file(PARTIALLY DONE)
+ 6. Dataframe to dataset me conversion(DONE)"
  
 
 (defn execute-algorithm
   "Dispatches ML algorithm execution."
-  [algorithm dataset parameters]
+  [algo ds params]
 
-  (case algorithm
+  (case algo
     "ChiSquareTest"
-    (chi/execute dataset parameters)
+    (chi/execute ds params)
 
     "CountVectorizer"
-    (cv/execute dataset parameters)
+    (cv/execute ds params)
 
     "Tokenizer"
-    (tokenizer/execute-tokenizer
-     dataset
-     parameters)
+    (tokenizer/execute-tokenizer ds params)
 
     "RegexTokenizer"
-    (tokenizer/execute-regex-tokenizer
-     dataset
-     parameters)
+    (tokenizer/execute-regex-tokenizer ds params)
 
-    "StopWordsRemover"
-    (swr/execute dataset parameters)
+    "StopWordsRemover" 
+    (swr/execute ds params)
 
     "NGram"
-    (ngram/execute dataset parameters)
+    (ngram/execute ds params)
 
     "StringIndexer"
-    (si/execute dataset parameters)
+    (si/execute ds params)
 
     "Binarizer"
-    (bin/execute dataset parameters)
+    (bin/execute ds params)
 
     "Normalizer"
-    (norm/execute dataset parameters)
+    (norm/execute ds params)
 
     "StandardScaler"
-    (ss/execute dataset parameters)
+    (ss/execute ds params)
 
     "Bucketizer"
-    (bucket/execute dataset parameters)
+    (bucket/execute ds params)
 
     "Imputer"
-    (imp/execute dataset parameters)
+    (imp/execute ds params)
 
     "ChiSqSelector"
-    (css/execute dataset parameters)
+    (css/execute ds params)
 
     "BucketedRandomProjectionLSH"
-    (brp/execute dataset parameters)
+    (brp/execute ds params)
 
     "GeneralizedLinearRegression"
-    (glr/execute dataset parameters)
+    (glr/execute ds params)
 
     "LDA"
-    (lda/execute dataset parameters)
+    (lda/execute ds params)
 
     "GeneralizedLinearRegressionModel"
-    (glr-model/execute dataset parameters)
+    (glr-model/execute ds params)
 
     (throw (ex-info "Unsupported algorithm"
                     {:type :algorithm/not-supported
-                     :algorithm algorithm}))))
+                     :algorithm algo}))))
 
 (defn execute
   "Handles ML execution request."
   [req]
   (specs/validate-request (:body req))
-  (let [{:keys [algorithm parameters]}
-        (:body req)
-        _ (log/info {:msg "ML request received" :algorithm algorithm})
-        raw-dataset (ds/read-dataset session parameters)
-        processed-dataset (preprocess/preprocess-dataset raw-dataset parameters)
-        result (execute-algorithm algorithm processed-dataset parameters)
+  (let [{:keys [algorithm parameters]} (:body req)
+        _ (log/info {:msg "ML request received"
+                     :algorithm algorithm})
+        raw-ds (ds/read-dataset session parameters)
+        processed-ds (preprocess/preprocess-dataset raw-ds parameters)
+        result (execute-algorithm algorithm processed-ds parameters)
         duration (- (System/currentTimeMillis) (:start-time req))]
     (log/info {:msg "ML execution completed"
                :algorithm algorithm
@@ -129,9 +125,8 @@
 
 (defroutes app-routes
   (POST "/v1/ml/execute" [] execute)
-  (route/not-found
-   (status (response {:error "NOT_FOUND"})
-           404)))
+  (route/not-found (status (response {:error "NOT_FOUND"})
+                           404)))
 
 (def app
   (-> app-routes

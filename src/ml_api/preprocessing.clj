@@ -38,28 +38,28 @@
 
 (defn validate-columns
   "Validates whether required columns exist."
-  [dataset required-columns]
-  (let [dataset-columns (set (.fieldNames (.schema ^Dataset dataset)))
+  [ds required-columns]
+  (let [dataset-columns (set (.fieldNames (.schema ^Dataset ds)))
         missing-columns (set/difference (set required-columns) dataset-columns)]
     (when (seq missing-columns)
       (throw
        (ex-info "Column validation failed"
                 {:type :validation/invalid-column
                  :missing-columns missing-columns})))
-    dataset))
+    ds))
 
 (defn cast-column-to-double
   "Casts numeric column into double."
-  [dataset field]
-  (.withColumn ^Dataset dataset field (.cast (sqlf/col field) "double")))
+  [ds field]
+  (.withColumn ^Dataset ds field (.cast (sqlf/col field) "double")))
 
 (defn preprocess-dataset
   "Validates and preprocesses dataset."
-  [dataset parameters]
+  [ds parameters]
   (try
     (let [required-columns (get-required-columns parameters)
-          _ (validate-columns dataset required-columns)
-          schema-fields (.fields (.schema ^Dataset dataset))
+          _ (validate-columns ds required-columns)
+          schema-fields (.fields (.schema ^Dataset ds))
           processed-dataset
           (reduce (fn [df ^StructField field]
                     (if (and (contains? (set required-columns) (.name field))
@@ -68,7 +68,7 @@
                                  (instance? FloatType (.dataType field))))
                       (cast-column-to-double df (.name field))
                       df))
-                  dataset
+                  ds
                   schema-fields)]
       (log/info {:msg "Dataset preprocessing completed successfully"
                  :required-columns required-columns})

@@ -14,20 +14,20 @@
 
 (defn dataset->json
   "Converts dataset into JSON preview."
-  [dataset target-field output-field]
-  (mapv #(row->clojure % target-field output-field) (.collectAsList dataset)))
+  [ds target-field output-field]
+  (mapv #(row->clojure % target-field output-field) (.collectAsList ds)))
 
 (defn transform
   "Loads trained model and generates predictions."
-  [dataset model-path feature-field]
-  (let [vectorized-dataset (va/create-feature-vector dataset feature-field)
+  [ds model-path feature-field]
+  (let [vectorized-ds (va/create-feature-vector ds feature-field)
         model (GeneralizedLinearRegressionModel/load model-path)]
-    (.transform model vectorized-dataset)))
+    (.transform model vectorized-ds)))
 
 (defn execute
   "Executes Spark GeneralizedLinearRegressionModel."
-  [dataset {:keys [model_path feature_field target_field output_field]
-            :or {target_field "label" output_field "prediction"}}]
+  [ds {:keys [model_path feature_field target_field output_field]
+       :or {target_field "label" output_field "prediction"}}]
 
   (try
     (log/info {:msg "Starting GeneralizedLinearRegressionModel"
@@ -36,8 +36,8 @@
                :target-field target_field
                :output-field output_field})
 
-    (let [transformed-dataset (transform dataset model_path feature_field)
-          preview (dataset->json transformed-dataset target_field output_field)]
+    (let [transformed-ds (transform ds model_path feature_field)
+          preview (dataset->json transformed-ds target_field output_field)]
       (log/info
        {:msg "GeneralizedLinearRegressionModel completed successfully"})
       {:data preview})

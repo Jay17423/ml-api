@@ -23,9 +23,9 @@
 
 (defn dataset->json
   "Converts transformed dataset into JSON preview."
-  [dataset text-field topic-distribution-field]
+  [ds text-field topic-distribution-field]
   (mapv #(row->clojure % text-field topic-distribution-field)
-        (.collectAsList dataset)))
+        (.collectAsList ds)))
 
 (defn topic-row->clojure
   "Converts topic row into readable topic keywords."
@@ -44,30 +44,30 @@
 
 (defn execute
   "Executes Spark LDA."
-  [dataset {:keys [text_field
-                   topic_count
-                   max_iterations
-                   random_seed
-                   training_method
-                   checkpoint_interval
-                   initial_learning_offset
-                   learning_decay_rate
-                   training_sample_rate
-                   auto_optimize
-                   document_concentration
-                   topic_concentration
-                   topic_distribution_field
-                   keep_last_checkpoint]
-            :or {topic_count 10
-                 max_iterations 20
-                 training_method "online"
-                 checkpoint_interval 10
-                 initial_learning_offset 1024.0
-                 learning_decay_rate 0.51
-                 training_sample_rate 0.05
-                 auto_optimize true
-                 topic_distribution_field "topicDistribution"
-                 keep_last_checkpoint true}}]
+  [ds {:keys [text_field
+              topic_count
+              max_iterations
+              random_seed
+              training_method
+              checkpoint_interval
+              initial_learning_offset
+              learning_decay_rate
+              training_sample_rate
+              auto_optimize
+              document_concentration
+              topic_concentration
+              topic_distribution_field
+              keep_last_checkpoint]
+       :or {topic_count 10
+            max_iterations 20
+            training_method "online"
+            checkpoint_interval 10
+            initial_learning_offset 1024.0
+            learning_decay_rate 0.51
+            training_sample_rate 0.05
+            auto_optimize true
+            topic_distribution_field "topicDistribution"
+            keep_last_checkpoint true}}]
 
   (try
     (log/info {:msg "Starting LDA"
@@ -75,15 +75,13 @@
                :topic-count topic_count
                :training-method training_method})
 
-    (let [filtered-dataset (swr/transform dataset text_field "filtered_words"
-                                          nil
-                                          false)
-          cv-model-data (cv/fit-transform filtered-dataset "filtered_words"
+    (let [filtered-ds (swr/transform ds text_field "filtered_words" nil false)
+          cv-model-data (cv/fit-transform filtered-ds "filtered_words"
                                           "features"
                                           262144
                                           1
                                           1.0)
-          vectorized-dataset (:dataset cv-model-data)
+          vectorized-ds (:dataset cv-model-data)
           cv-model (:model cv-model-data)
           vocabulary (vec (.vocabulary cv-model))
           lda (-> (LDA.)
@@ -98,7 +96,6 @@
                   (.setSubsamplingRate (double training_sample_rate))
                   (.setOptimizeDocConcentration auto_optimize)
                   (.setKeepLastCheckpoint keep_last_checkpoint))
-
           lda (if random_seed
                 (.setSeed lda random_seed)
                 lda)
@@ -108,11 +105,10 @@
           lda (if topic_concentration
                 (.setTopicConcentration lda (double topic_concentration))
                 lda)
-          model (.fit lda vectorized-dataset)
-          transformed-dataset (.transform model vectorized-dataset)
+          model (.fit lda vectorized-ds)
+          transformed-ds (.transform model vectorized-ds)
           topics (.describeTopics model)
-          preview (dataset->json transformed-dataset
-                                 text_field
+          preview (dataset->json transformed-ds text_field
                                  topic_distribution_field)
           topic-preview (topics->json topics vocabulary)]
       (log/info {:msg "LDA completed successfully"})
