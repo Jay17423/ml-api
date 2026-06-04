@@ -28,10 +28,10 @@
    {}
    row-map))
 
-(defn dataset->preview
+(comment (defn dataset->preview
   "Converts Spark dataset preview into JSON-safe maps."
   [ds]
   (->> (.limit ds 10)
        sql/collect
        (map sql/row->map)
-       (map normalize-row)))
+       (map normalize-row))))
