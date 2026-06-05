@@ -5,7 +5,8 @@
    [taoensso.timbre :as log]))
 
 (deftest error-response-test
-  (let [res (mw/error-response 400 "Validation failed" 100 {:field "algorithm"})]
+  (let
+   [res (mw/error-response 400 "Validation failed" 100 {:field "algorithm"})]
     (is (= 400 (:status res)))
     (is (= "error" (get-in res [:body :status])))
     (is (= "Validation failed" (get-in res [:body :message])))

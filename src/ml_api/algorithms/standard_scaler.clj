@@ -7,16 +7,6 @@
   (:import
    [org.apache.spark.ml.feature StandardScaler]))
 
-(defn row->clojure
-  "Converts Spark row into Clojure map."
-  [row output-field]
-  {:scaled-features (utils/vector->clojure (.getAs row output-field))})
-
-(defn dataset->json
-  "Converts dataset into JSON preview."
-  [ds output-field]
-  (mapv #(row->clojure % output-field) (.collectAsList ds)))
-
 (defn transform
   "Scales feature vectors."
   [ds feature-field output-field with-std with-mean]
@@ -39,9 +29,10 @@
                :output-field output_field
                :with-std with_std
                :with-mean with_mean})
+
     (let [transformed-ds (transform ds feature_field output_field with_std
                                     with_mean)
-          preview (dataset->json transformed-ds output_field)]
+          preview (utils/dataset->json transformed-ds [output_field])]
       (log/info {:msg "StandardScaler completed successfully"})
       {:data preview})
     (catch Exception err

@@ -7,16 +7,6 @@
   (:import
    [org.apache.spark.ml.feature NGram]))
 
-(defn row->clojure
-  "Converts Spark row into Clojure map."
-  [row output-field]
-  {:ngrams (utils/wrapped-array->clojure (.getAs row output-field))})
-
-(defn dataset->json
-  "Converts dataset into JSON preview."
-  [ds output-field]
-  (mapv #(row->clojure % output-field) (.collectAsList ds)))
-
 (defn transform
   "Transforms tokens into ngrams."
   [ds input-field output-field ngram-size]
@@ -38,7 +28,7 @@
                :output-field output_field
                :ngram-size ngram_size})
     (let [transformed-ds (transform ds input_field output_field ngram_size)
-          preview (dataset->json transformed-ds output_field)]
+          preview (utils/dataset->json transformed-ds [output_field])]
       (log/info {:msg "NGram completed successfully"})
       {:data preview})
     (catch Exception err

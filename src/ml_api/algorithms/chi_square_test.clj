@@ -9,12 +9,12 @@
 
 (defn parse-result
   "Parses Spark ChiSquareTest result."
-  [result-row flatten]
+  [result-row flat]
   (let [p-values (.getAs result-row "pValues")
         degrees-of-freedom (.getAs result-row "degreesOfFreedom")
         statistics (.getAs result-row "statistics")]
 
-    (if flatten
+    (if flat
       {:p-values (utils/vector->clojure p-values)
        :degrees-of-freedom (utils/wrapped-array->clojure degrees-of-freedom)
        :statistics (utils/vector->clojure statistics)}

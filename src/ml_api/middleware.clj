@@ -1,9 +1,11 @@
 (ns ml-api.middleware
+  "Middleware funtion for the Ml-Api Application."
   (:require
    [ring.util.response :refer [response status]]
    [taoensso.timbre :as log]))
 
 (defn error-response
+  "Returns the error response to the API request"
   [http-status message duration details]
   (-> (response {:status "error"
                  :message message
@@ -12,6 +14,7 @@
       (status http-status)))
 
 (defn status-for-error
+  "Returns correct HTTP status code according to the error."
   [error-type]
   (case error-type
     :validation/invalid-algorithm 404

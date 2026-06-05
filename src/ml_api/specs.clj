@@ -1,4 +1,5 @@
 (ns ml-api.specs
+  "Request validation specifications for ML algorithms."
   (:require
    [clojure.spec.alpha :as s]))
 
@@ -275,6 +276,16 @@
 
                :model_path {:validator string?
                             :type "string"}
+
+               :model_label {:validator string?
+                             :type "string"}
+
+               :train_size {:validator
+                            #(and (int? %) (> % 0) (< % 100))
+                            :type "integer(1-99)"}
+
+               :seed {:validator int?
+                      :type "integer"}
 
                :regression_family
                {:validator

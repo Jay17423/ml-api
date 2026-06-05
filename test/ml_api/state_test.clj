@@ -29,7 +29,7 @@
                                        (throw (RuntimeException.
                                                "spark failed")))
                   cfg/get (fn [& _]
-                          "local[*]")]
+                            "local[*]")]
 
       (is (thrown-with-msg? clojure.lang.ExceptionInfo
                             #"Unable to create Spark session"

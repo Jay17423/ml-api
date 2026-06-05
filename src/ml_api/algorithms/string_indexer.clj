@@ -1,24 +1,15 @@
 (ns ml-api.algorithms.string-indexer
   "Spark StringIndexer implementation."
   (:require
-   [taoensso.timbre :as log])
+   [taoensso.timbre :as log]
+   [ml-api.utils :as utils])
   (:import
    [org.apache.spark.ml.feature StringIndexer]))
-
-(defn row->clojure
-  "Converts Spark row into Clojure map."
-  [row input-fields output-fields]
-  (merge (into {} (map (fn [field] [field (.getAs row field)]) input-fields))
-         (into {} (map (fn [field] [field (.getAs row field)]) output-fields))))
-
-(defn dataset->json
-  "Converts dataset into JSON preview."
-  [ds input-fields output-fields]
-  (mapv #(row->clojure % input-fields output-fields) (.collectAsList ds)))
 
 (defn transform
   "Transforms categorical values into indices."
   [ds input-fields output-fields invalid-value label-order]
+
   (let [indexer (-> (StringIndexer.)
                     (.setInputCols (into-array String input-fields))
                     (.setOutputCols (into-array String output-fields))
@@ -27,20 +18,23 @@
         model (.fit indexer ds)]
     (.transform model ds)))
 
-
 (defn execute
   "Executes Spark StringIndexer."
   [ds {:keys [input_fields output_fields invalid_value label_order]
        :or {invalid_value "error" label_order "frequencyDesc"}}]
+
   (try
     (log/info {:msg "Starting StringIndexer"
                :input-fields input_fields
                :output-fields output_fields
                :invalid-value invalid_value
                :label-order label_order})
-    (let [trans-ds (transform ds input_fields output_fields invalid_value
-                              label_order)
-          preview (dataset->json trans-ds input_fields output_fields)]
+
+    (let [transformed-ds (transform ds input_fields output_fields invalid_value
+                                    label_order)
+          preview (utils/dataset->json
+                   transformed-ds
+                   (utils/preview-columns input_fields output_fields))]
       (log/info {:msg "StringIndexer completed successfully"})
       {:data preview})
     (catch Exception err

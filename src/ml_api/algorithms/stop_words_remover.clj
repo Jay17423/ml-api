@@ -7,16 +7,6 @@
   (:import
    [org.apache.spark.ml.feature StopWordsRemover]))
 
-(defn row->clojure
-  "Converts Spark row into Clojure map."
-  [row output-field]
-  {:filtered_words (utils/wrapped-array->clojure (.getAs row output-field))})
-
-(defn dataset->json
-  "Converts dataset into JSON preview."
-  [ds output-field]
-  (mapv #(row->clojure % output-field) (.collectAsList ds)))
-
 (defn transform
   "Removes stop words from tokens."
   [ds input-field output-field stop-words case-sensitive]
@@ -38,10 +28,9 @@
     (log/info {:msg "Starting StopWordsRemover"
                :input-field input_field
                :output-field output_field})
-
     (let [transformed-ds (transform ds input_field output_field stop_words
                                     case_sensitive)
-          preview (dataset->json transformed-ds output_field)]
+          preview (utils/dataset->json transformed-ds [output_field])]
       (log/info {:msg "StopWordsRemover completed successfully"})
       {:data preview})
     (catch Exception err

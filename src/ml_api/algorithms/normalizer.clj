@@ -8,19 +8,11 @@
    [org.apache.spark.ml.feature Normalizer]))
 
 (defn parse-norm-value
+  "Convert inf into numerical infinity otherwise normal numerical value "
   [norm-value]
-  (if (= norm-value "inf") Double/POSITIVE_INFINITY
-      (double norm-value)))
-
-(defn row->clojure
-  "Converts Spark row into Clojure map."
-  [row output-field]
-  {:normalized-features (utils/vector->clojure (.getAs row output-field))})
-
-(defn dataset->json
-  "Converts dataset into JSON preview."
-  [ds output-field]
-  (mapv #(row->clojure % output-field) (.collectAsList ds)))
+  (if (= norm-value "inf")
+    Double/POSITIVE_INFINITY
+    (double norm-value)))
 
 (defn transform
   "Normalizes feature vectors."
@@ -42,11 +34,9 @@
                :output-field output_field
                :norm-value norm_value})
     (let [transformed-ds (transform ds feature_field output_field norm_value)
-          _ (.show transformed-ds)
-          preview (dataset->json transformed-ds output_field)]
+          preview (utils/dataset->json transformed-ds [output_field])]
       (log/info {:msg "Normalizer completed successfully"})
-      {:norm-type norm_value
-       :data preview})
+      {:data preview})
     (catch Exception err
       (throw (ex-info "Normalizer execution failed"
                       {:type :algorithm/normalizer-failed

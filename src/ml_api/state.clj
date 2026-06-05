@@ -13,7 +13,7 @@
   (try
     (-> (fs/session-builder)
         (fs/master (cfg/get :spark :app :master-url))
-        (fs/app-name (cfg/get :spark :app :name)) 
+        (fs/app-name (cfg/get :spark :app :name))
         (fs/get-or-create))
     (catch Exception err
       (throw (ex-info "Unable to create Spark session"

@@ -1,4 +1,5 @@
 (ns ml-api.core
+  "Main entry point for ML API request handling and algorithm execution."
   (:gen-class)
   (:require
    [mount.core :as mount]
@@ -33,16 +34,6 @@
    [omniconf.core :as cfg]
    [ml-api.specs :as specs]))
 
-"TODO : 1. change all underscore params name to kebab case after completing the 
- project(DONE)
- 2. Cast all integer cols  to double for csv file and I will do it in  preprocessing.clj file
-  later, check the provided cols is present or not(DONE),
- 3. Verify the docstring in all the namespaces and funtion (DONE)
- 4. Add termIndices in the LDA algorithm(DONE)
- 5. Refactor all the repeating code and put it int the utility file(PARTIALLY DONE)
- 6. Dataframe to dataset me conversion(DONE)"
- 
-
 (defn execute-algorithm
   "Dispatches ML algorithm execution."
   [algo ds params]
@@ -60,7 +51,7 @@
     "RegexTokenizer"
     (tokenizer/execute-regex-tokenizer ds params)
 
-    "StopWordsRemover" 
+    "StopWordsRemover"
     (swr/execute ds params)
 
     "NGram"
@@ -124,11 +115,13 @@
         (status 200))))
 
 (defroutes app-routes
+  "Define API routes."
   (POST "/v1/ml/execute" [] execute)
   (route/not-found (status (response {:error "NOT_FOUND"})
                            404)))
 
 (def app
+  "Ring application with middleware."
   (-> app-routes
       (mw/wrap-error-handler)
       (mw/wrap-request-timer)
@@ -137,6 +130,7 @@
       wrap-reload))
 
 (defn -main
+  "Starts application and HTTP server."
   []
   (try
     (cfg/populate-from-file

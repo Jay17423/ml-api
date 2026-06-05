@@ -45,18 +45,18 @@
         model (.fit count-vectorizer tokenized-dataset)]
     (.transform model tokenized-dataset)))
 
-(comment(defn get-vocabulary
-  "Returns CountVectorizer vocabulary."
-  [ds input-field word-limit min-docs min-count]
-  (let [tokenized-dataset (tokenizer/transform ds input-field "words")
-        count-vectorizer (-> (CountVectorizer.)
-                             (.setInputCol "words")
-                             (.setOutputCol "features")
-                             (.setVocabSize word-limit)
-                             (.setMinDF min-docs)
-                             (.setMinTF min-count))
-        model (.fit count-vectorizer tokenized-dataset)]
-    (vec (.vocabulary model)))))
+(comment (defn get-vocabulary
+           "Returns CountVectorizer vocabulary."
+           [ds input-field word-limit min-docs min-count]
+           (let [tokenized-dataset (tokenizer/transform ds input-field "words")
+                 count-vectorizer (-> (CountVectorizer.)
+                                      (.setInputCol "words")
+                                      (.setOutputCol "features")
+                                      (.setVocabSize word-limit)
+                                      (.setMinDF min-docs)
+                                      (.setMinTF min-count))
+                 model (.fit count-vectorizer tokenized-dataset)]
+             (vec (.vocabulary model)))))
 
 (defn execute
   "Executes Spark CountVectorizer."

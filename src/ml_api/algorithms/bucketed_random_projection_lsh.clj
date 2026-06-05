@@ -9,7 +9,7 @@
    [org.apache.spark.ml.feature BucketedRandomProjectionLSH]))
 
 (defn row->clojure
-   "Converts Spark hash row into Clojure map."
+  "Converts Spark hash row into Clojure map."
   [row output-field]
   {:hashes (mapv (fn [hash-vector]
                    (utils/vector->clojure hash-vector))
@@ -25,7 +25,6 @@
   [ds {:keys [feature_field output_field bucket_length num_hash_tables
               random_seed]
        :or {output_field "hashes" num_hash_tables 1}}]
-
   (try
     (log/info
      {:msg "Starting BucketedRandomProjectionLSH"
@@ -40,7 +39,6 @@
                   (.setOutputCol output_field)
                   (.setBucketLength (double bucket_length))
                   (.setNumHashTables num_hash_tables))
-
           lsh (if random_seed (.setSeed lsh random_seed)
                   lsh)
           model (.fit lsh vectorized-ds)

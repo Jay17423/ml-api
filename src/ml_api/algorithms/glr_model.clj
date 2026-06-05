@@ -2,20 +2,11 @@
   "Spark GeneralizedLinearRegressionModel implementation."
   (:require
    [taoensso.timbre :as log]
-   [ml-api.algorithms.vector-assembler :as va])
+   [ml-api.algorithms.vector-assembler :as va]
+   [ml-api.utils :as utils])
   (:import
-   [org.apache.spark.ml.regression GeneralizedLinearRegressionModel]))
-
-(defn row->clojure
-  "Converts Spark row into Clojure map."
-  [row target-field output-field]
-  {(keyword target-field) (.getAs row target-field)
-   (keyword output-field) (.getAs row output-field)})
-
-(defn dataset->json
-  "Converts dataset into JSON preview."
-  [ds target-field output-field]
-  (mapv #(row->clojure % target-field output-field) (.collectAsList ds)))
+   [org.apache.spark.ml.regression
+    GeneralizedLinearRegressionModel]))
 
 (defn transform
   "Loads trained model and generates predictions."
@@ -26,9 +17,12 @@
 
 (defn execute
   "Executes Spark GeneralizedLinearRegressionModel."
-  [ds {:keys [model_path feature_field target_field output_field]
-       :or {target_field "label" output_field "prediction"}}]
-
+  [ds {:keys [model_path
+              feature_field
+              target_field
+              output_field]
+       :or {target_field "label"
+            output_field "prediction"}}]
   (try
     (log/info {:msg "Starting GeneralizedLinearRegressionModel"
                :model-path model_path
@@ -37,7 +31,8 @@
                :output-field output_field})
 
     (let [transformed-ds (transform ds model_path feature_field)
-          preview (dataset->json transformed-ds target_field output_field)]
+          preview (utils/dataset->json transformed-ds
+                                       [target_field output_field])]
       (log/info
        {:msg "GeneralizedLinearRegressionModel completed successfully"})
       {:data preview})
