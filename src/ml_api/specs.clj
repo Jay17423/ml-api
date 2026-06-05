@@ -401,29 +401,20 @@
 
 (defn validate-required-parameters
   [required-spec parameters]
-  (doseq [[param-name {:keys [validator type]}]
-          required-spec]
-
+  (doseq [[param-name {:keys [validator type]}] required-spec]
     (when-not (contains? parameters param-name)
       (throw (ex-info "Missing required parameter"
                       {:type :validation/missing-parameter
                        :parameter param-name})))
-
-    (validate-parameter-type
-     param-name validator
-     type
-     (get parameters param-name))))
+    (validate-parameter-type param-name validator type
+                             (get parameters param-name))))
 
 (defn validate-optional-parameters
   [optional-spec parameters]
-
   (doseq [[param-name {:keys [validator type]}] optional-spec]
     (when (contains? parameters param-name)
-      (validate-parameter-type
-       param-name
-       validator
-       type
-       (get parameters param-name)))))
+      (validate-parameter-type param-name validator type
+                               (get parameters param-name)))))
 
 (defn validate-request
   [body]

@@ -45,7 +45,8 @@
           transformed-ds (.transform model vectorized-ds)
           preview (dataset->json transformed-ds output_field)]
       (log/info {:msg "BucketedRandomProjectionLSH completed successfully"})
-      {:data preview})
+      {
+       :data preview})
     (catch Exception err
       (throw (ex-info "BucketedRandomProjectionLSH execution failed"
                       {:type :algorithm/bucketed-random-projection-lsh-failed

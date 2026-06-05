@@ -69,12 +69,13 @@
     (log/info {:msg "Starting CountVectorizer"
                :input-field input_field
                :output-field output_field})
-    (let [transformed-dataset (transform ds
-                                         input_field
-                                         output_field
-                                         word_limit
-                                         min_docs
-                                         min_count)
+    (let [transformed-dataset (transform
+                               ds
+                               input_field
+                               output_field
+                               word_limit
+                               min_docs
+                               min_count)
           preview (dataset->json transformed-dataset "words" output_field)]
       (log/info {:msg "CountVectorizer completed successfully"})
       {:data preview})

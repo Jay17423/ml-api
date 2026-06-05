@@ -107,7 +107,6 @@
               aggregation_depth
               train_size
               seed]
-       
        :or {output_field "prediction"
             regression_family "gaussian"
             include_intercept true
@@ -138,24 +137,22 @@
           train-ds (aget split-datasets 0)
           test-ds (aget split-datasets 1)
           train-start (current-time-ms)
-          glr (create-glr
-               {:target_field target_field
-                :output_field output_field
-                :regression_family regression_family
-                :prediction_link prediction_link
-                :include_intercept include_intercept
-                :max_iterations max_iterations
-                :training_tolerance training_tolerance
-                :regularization_strength regularization_strength
-                :row_weight_field row_weight_field
-                :training_solver training_solver
-                :link_output_field link_output_field
-                :offset_field offset_field
-                :aggregation_depth aggregation_depth})
+          glr (create-glr {:target_field target_field
+                           :output_field output_field
+                           :regression_family regression_family
+                           :prediction_link prediction_link
+                           :include_intercept include_intercept
+                           :max_iterations max_iterations
+                           :training_tolerance training_tolerance
+                           :regularization_strength regularization_strength
+                           :row_weight_field row_weight_field
+                           :training_solver training_solver
+                           :link_output_field link_output_field
+                           :offset_field offset_field
+                           :aggregation_depth aggregation_depth})
           model (.fit glr train-ds)
           train-end (current-time-ms)
-          _
-          (save-model model model_path)
+          _ (save-model model model_path)
           prediction-start (current-time-ms)
           transformed-ds (.transform model test-ds)
           prediction-end (current-time-ms)
@@ -174,7 +171,6 @@
        :prediction-time-sec (calculate-duration-sec prediction-start
                                                     prediction-end)
        :data preview})
-
     (catch Exception err
       (throw (ex-info "GeneralizedLinearRegression execution failed"
                       {:type :algorithm/generalized-linear-regression-failed

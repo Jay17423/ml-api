@@ -25,7 +25,8 @@
               fpr_threshold
               fdr_threshold
               fwe_threshold]
-       :or {target_field "label" selection_method "numTopFeatures"
+       :or {target_field "label"
+            selection_method "numTopFeatures"
             top_feature 50
             selection_percentage 0.1
             fpr_threshold 0.05
@@ -47,29 +48,19 @@
                        (.setSelectorType selection_method))
           selector (case selection_method
                      "numTopFeatures"
-                     (.setNumTopFeatures
-                      selector
-                      top_feature)
+                     (.setNumTopFeatures selector top_feature)
 
                      "percentile"
-                     (.setPercentile
-                      selector
-                      (double selection_percentage))
+                     (.setPercentile selector (double selection_percentage))
 
                      "fpr"
-                     (.setFpr
-                      selector
-                      (double fpr_threshold))
+                     (.setFpr selector (double fpr_threshold))
 
                      "fdr"
-                     (.setFdr
-                      selector
-                      (double fdr_threshold))
+                     (.setFdr selector (double fdr_threshold))
 
                      "fwe"
-                     (.setFwe
-                      selector
-                      (double fwe_threshold))
+                     (.setFwe selector (double fwe_threshold))
 
                      selector)
           model (.fit selector vectorized-ds)

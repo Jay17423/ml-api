@@ -55,7 +55,6 @@
     (let [transformed-ds (transform ds feature_field output_field strategy
                                     missing_value
                                     relative_error)
-
           preview (utils/dataset->json
                    transformed-ds
                    (utils/preview-columns feature_field output_field))]
