@@ -43,7 +43,7 @@
                   log/info (fn [_])]
 
       (let [res (swr/execute :dataset {:input_field "text"})]
-        
+
         (is (= {:data [{:filtered_words  ["hello" "world"]}]}
                res))))))
 

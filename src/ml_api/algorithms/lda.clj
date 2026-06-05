@@ -25,7 +25,7 @@
   "Converts transformed dataset into JSON preview."
   [ds text-field topic-distribution-field]
   (mapv #(row->clojure % text-field topic-distribution-field)
-        (.collectAsList ds)))
+        (.collectAsList (.limit ds 20))))
 
 (defn topic-row->clojure
   "Converts topic row into readable topic keywords."
@@ -40,7 +40,7 @@
 (defn topics->json
   "Converts topics dataset into JSON."
   [topics vocabulary]
-  (mapv #(topic-row->clojure % vocabulary) (.collectAsList topics)))
+  (mapv #(topic-row->clojure % vocabulary) (.collectAsList (.limit topics 20))))
 
 (defn execute
   "Executes Spark LDA."

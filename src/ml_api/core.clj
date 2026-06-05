@@ -34,9 +34,6 @@
    [omniconf.core :as cfg]
    [ml-api.specs :as specs]))
 
-"TODO : Let for let variable in all the algorithm and remove where it is not 
- needed."
-
 (defn execute-algorithm
   "Dispatches ML algorithm execution."
   [algo ds params]

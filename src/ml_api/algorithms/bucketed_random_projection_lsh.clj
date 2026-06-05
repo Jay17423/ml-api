@@ -18,7 +18,7 @@
 (defn dataset->json
   "Converts transformed dataset into preview JSON."
   [ds output-field]
-  (mapv #(row->clojure % output-field) (.collectAsList ds)))
+  (mapv #(row->clojure % output-field) (.collectAsList (.limit ds 20))))
 
 (defn execute
   "Executes Spark BucketedRandomProjectionLSH."
@@ -45,8 +45,7 @@
           transformed-ds (.transform model vectorized-ds)
           preview (dataset->json transformed-ds output_field)]
       (log/info {:msg "BucketedRandomProjectionLSH completed successfully"})
-      {
-       :data preview})
+      {:data preview})
     (catch Exception err
       (throw (ex-info "BucketedRandomProjectionLSH execution failed"
                       {:type :algorithm/bucketed-random-projection-lsh-failed

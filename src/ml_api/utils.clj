@@ -43,7 +43,7 @@
   "Converts Spark dataset into JSON-safe preview."
   [ds fields]
   (mapv #(row->map % fields)
-        (.collectAsList ds)))
+        (.collectAsList (.limit ds 20))))
 
 (defn preview-columns
   "Combines multiple field collections into single vector."

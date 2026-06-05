@@ -29,7 +29,7 @@
                                      :output_field ["bucket"]
                                      :bucket_splits [[0.0 1.0 5.0]]
                                      :invalid_value "keep"})]
-        
+
         (is (= {:data [{:feature 2.5 :bucket 1.0}]} res))))))
 
 (deftest execute-default-invalid-value
@@ -45,7 +45,7 @@
                                         [{:feature 0.5
                                           :bucket 0.0}])
                   log/info (fn [_])]
-      
+
       (let [res (bucketizer/execute :dataset
                                     {:feature_field ["feature"]
                                      :output_field ["bucket"]

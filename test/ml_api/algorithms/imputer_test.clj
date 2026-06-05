@@ -82,7 +82,7 @@
       (is (thrown-with-msg?
            clojure.lang.ExceptionInfo
            #"Imputer execution failed"
-           
+
            (imp/execute :dataset
-            {:feature_field ["feature"]
-             :output_field ["imputed-feature"]}))))))
+                        {:feature_field ["feature"]
+                         :output_field ["imputed-feature"]}))))))

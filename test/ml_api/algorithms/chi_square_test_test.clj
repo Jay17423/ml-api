@@ -11,19 +11,19 @@
                                              :vectorized-dataset)
 
                   cht/parse-result (fn [_ _]
-                                                 {:p-values [0.1]
-                                                  :degrees-of-freedom [1]
-                                                  :statistics [5.0]})
+                                     {:p-values [0.1]
+                                      :degrees-of-freedom [1]
+                                      :statistics [5.0]})
                   log/info (fn [_])
 
                   cht/execute (fn [_ _]
-                                            {:data {:p-values [0.1]
-                                                    :degrees-of-freedom [1]
-                                                    :statistics [5.0]}})]
+                                {:data {:p-values [0.1]
+                                        :degrees-of-freedom [1]
+                                        :statistics [5.0]}})]
       (let [res (cht/execute :dataset
-                                         {:label_field "label"
-                                          :feature_field ["feature1"]
-                                          :flatten true})]
+                             {:label_field "label"
+                              :feature_field ["feature1"]
+                              :flatten true})]
         (is (= {:data {:p-values [0.1] :degrees-of-freedom [1]
                        :statistics [5.0]}}
                res))))))
@@ -34,16 +34,16 @@
                                              :vectorized-dataset)
 
                   cht/parse-result (fn [_ flatten]
-                                                 (is (= true flatten))
-                                                 {:p-values [0.2]})
+                                     (is (= true flatten))
+                                     {:p-values [0.2]})
                   log/info (fn [_])
 
                   cht/execute (fn [_ _]
-                                            {:data {:p-values [0.2]}})]
+                                {:data {:p-values [0.2]}})]
 
       (let [res (cht/execute :dataset
-                                         {:label_field "label"
-                                          :feature_field ["feature1"]})]
+                             {:label_field "label"
+                              :feature_field ["feature1"]})]
         (is (= {:data {:p-values [0.2]}} res))))))
 
 (deftest execute-negative-and-edge
@@ -62,16 +62,16 @@
            #"ChiSquareTest execution failed"
 
            (cht/execute :dataset
-                                    {:label_field "label"
-                                     :feature_field ["feature1"]})))))
+                        {:label_field "label"
+                         :feature_field ["feature1"]})))))
 
   (testing "parse-result failure throws exception"
     (with-redefs [va/create-feature-vector (fn [_ _]
                                              :vectorized-dataset)
 
                   cht/parse-result (fn [_ _]
-                                                 (throw (RuntimeException.
-                                                         "parse failed")))
+                                     (throw (RuntimeException.
+                                             "parse failed")))
                   cht/execute
                   (fn [_ _]
                     (throw (ex-info
@@ -81,5 +81,5 @@
            clojure.lang.ExceptionInfo
            #"ChiSquareTest execution failed"
            (cht/execute :dataset
-                                    {:label_field "label"
-                                     :feature_field ["feature1"]}))))))
+                        {:label_field "label"
+                         :feature_field ["feature1"]}))))))

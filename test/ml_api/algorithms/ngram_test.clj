@@ -63,7 +63,7 @@
            #"NGram execution failed"
 
            (ng/execute :dataset
-            {:input_field "text"})))))
+                       {:input_field "text"})))))
 
   (testing "dataset->json failure throws exception"
     (with-redefs [ng/transform (fn [_ _ _ _]

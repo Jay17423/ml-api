@@ -74,7 +74,7 @@
         glr (if link_output_field
               (.setLinkPredictionCol glr link_output_field)
               glr)]
-    
+
     (if offset_field
       (.setOffsetCol glr offset_field)
       glr)))

@@ -15,7 +15,7 @@
 (defn dataset->json
   "Convert Dataset into JSON preview"
   [ds output-field]
-  (mapv #(row->clojure % output-field) (.collectAsList ds)))
+  (mapv #(row->clojure % output-field) (.collectAsList (.limit ds 20))))
 
 (defn execute
   "Executes Spark ChiSqSelector."

@@ -16,7 +16,8 @@
 (defn dataset->json
   "Converts dataset into JSON preview."
   [ds input-field output-field]
-  (mapv #(row->clojure % input-field output-field) (.collectAsList ds)))
+  (mapv #(row->clojure % input-field output-field)
+        (.collectAsList (.limit ds 20))))
 
 (defn fit-transform
   "Fits CountVectorizer model and returns transformed dataset and model."
@@ -69,13 +70,9 @@
     (log/info {:msg "Starting CountVectorizer"
                :input-field input_field
                :output-field output_field})
-    (let [transformed-dataset (transform
-                               ds
-                               input_field
-                               output_field
-                               word_limit
-                               min_docs
-                               min_count)
+    (let [transformed-dataset (transform ds input_field output_field word_limit
+                                         min_docs
+                                         min_count)
           preview (dataset->json transformed-dataset "words" output_field)]
       (log/info {:msg "CountVectorizer completed successfully"})
       {:data preview})

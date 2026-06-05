@@ -390,8 +390,8 @@
                               :type "string"}}}})
 
 (defn validate-parameter-type
+  "Validate Datatype for each parameters"
   [param-name validator expected-type value]
-
   (when-not (validator value)
     (throw (ex-info "Invalid parameter datatype"
                     {:type :validation/invalid-parameter-type
@@ -400,6 +400,7 @@
                      :received (str (type value))}))))
 
 (defn validate-required-parameters
+  "Validate all the required parameters "
   [required-spec parameters]
   (doseq [[param-name {:keys [validator type]}] required-spec]
     (when-not (contains? parameters param-name)
@@ -410,6 +411,7 @@
                              (get parameters param-name))))
 
 (defn validate-optional-parameters
+  "Validate all the optional parameters"
   [optional-spec parameters]
   (doseq [[param-name {:keys [validator type]}] optional-spec]
     (when (contains? parameters param-name)
@@ -417,6 +419,7 @@
                                (get parameters param-name)))))
 
 (defn validate-request
+  "Validate the request body"
   [body]
   (when-not (string? (:algorithm body))
     (throw (ex-info "algorithm must be string"

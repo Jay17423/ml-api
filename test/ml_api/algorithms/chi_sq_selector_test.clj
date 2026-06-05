@@ -9,11 +9,11 @@
   (testing "ChiSqSelector executes successfully"
     (with-redefs [va/create-feature-vector (fn [_ _]
                                              :vectorized-dataset)
-                  
+
                   css/dataset->json
                   (fn [_ _]
                     [{:selected-features [1.0 2.0]}])
-                  
+
                   log/info (fn [_])
 
                   css/execute
@@ -21,11 +21,11 @@
                     {:data [{:selected-features [1.0 2.0]}]})]
 
       (let [res (css/execute :dataset
-                                         {:feature_field ["feature1" "feature2"]
-                                          :target_field "label"
-                                          :output_field "selected_features"
-                                          :selection_method "numTopFeatures"
-                                          :top_feature 10})]
+                             {:feature_field ["feature1" "feature2"]
+                              :target_field "label"
+                              :output_field "selected_features"
+                              :selection_method "numTopFeatures"
+                              :top_feature 10})]
         (is (= {:data [{:selected-features [1.0 2.0]}]} res))))))
 
 (deftest execute-default-values
@@ -45,7 +45,7 @@
                     {:data [{:selected-features [0.5]}]})]
 
       (let [res (css/execute :dataset
-                                         {:feature_field ["feature1"]})]
+                             {:feature_field ["feature1"]})]
         (is (= {:data [{:selected-features [0.5]}]} res))))))
 
 (deftest execute-with-percentile-selection
@@ -54,7 +54,7 @@
                                              :vectorized-dataset)
 
                   css/dataset->json (fn [_ _]
-                                                  [{:selected-features [1.0]}])
+                                      [{:selected-features [1.0]}])
                   log/info (fn [_])
 
                   css/execute
@@ -62,9 +62,9 @@
                     {:data [{:selected-features [1.0]}]})]
 
       (let [res (css/execute :dataset
-                                         {:feature_field ["feature1"]
-                                          :selection_method "percentile"
-                                          :selection_percentage 0.5})]
+                             {:feature_field ["feature1"]
+                              :selection_method "percentile"
+                              :selection_percentage 0.5})]
 
         (is (= {:data [{:selected-features [1.0]}]} res))))))
 
@@ -86,7 +86,7 @@
            #"ChiSqSelector execution failed"
 
            (css/execute :dataset
-                                    {:feature_field ["feature1"]})))))
+                        {:feature_field ["feature1"]})))))
 
   (testing "dataset->json failure throws exception"
     (with-redefs [va/create-feature-vector (fn [_ _]
@@ -96,7 +96,7 @@
                   (fn [_ _]
                     (throw (RuntimeException.
                             "json conversion failed")))
-                  
+
                   log/info (fn [_])
 
                   css/execute
@@ -110,4 +110,4 @@
            #"ChiSqSelector execution failed"
 
            (css/execute :dataset
-                                    {:feature_field ["feature1"]}))))))
+                        {:feature_field ["feature1"]}))))))

@@ -48,9 +48,15 @@
 
 (defn execute-regex-tokenizer
   "Executes Spark RegexTokenizer."
-  [ds {:keys [input_field output_field pattern pattern_as_delimiter
-              minimum_token_length convert_to_lowercase]
-       :or {pattern "\\s+" pattern_as_delimiter true minimum_token_length 1
+  [ds {:keys [input_field
+              output_field
+              pattern
+              pattern_as_delimiter
+              minimum_token_length
+              convert_to_lowercase]
+       :or {pattern "\\s+"
+            pattern_as_delimiter true
+            minimum_token_length 1
             convert_to_lowercase true}}]
   (try
     (log/info {:msg "Starting RegexTokenizer"
